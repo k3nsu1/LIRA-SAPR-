@@ -1,0 +1,57 @@
+# Documentation site for this project. Preview: zensical serve; check: zensical build --strict
+[project]
+site_name = "Lira-Sapr-MCP"
+docs_dir = "docs"
+site_dir = "site"
+# Every page must be listed here. A bare path takes its title from the page's heading;
+# a section is { "Section title" = [ "folder/page.md", ... ] }.
+nav = [
+  "index.md",
+  "PRODUCT.md",
+  "ARCHITECTURE.md",
+  "tools.md",
+  { "Устройство" = [ "components/server.md", "components/slabs.md", "flows/main-scenario.md" ] },
+  "operations.md",
+  { "Решения" = [ "decisions/0001-architecture.md", "decisions/0002-python-stack.md", "decisions/0003-postprocessing.md", "decisions/0004-sapfir.md", "decisions/0005-reports.md" ] },
+  { "Исследования" = [ "research/lira-api.md" ] },
+  "TASKS.md",
+  { "История" = [ "history/stage-1.md", "history/stage-2.md", "history/stage-3.md", "history/stage-4.md", "history/stage-5.md", "history/stage-6.md", "history/debt-2026-10.md", "history/owner-model-2026-11.md" ] },
+]
+
+[project.theme]
+language = "ru"
+features = [
+  "content.code.copy",
+  "content.tooltips",
+  "navigation.indexes",
+  "navigation.sections",
+  "navigation.top",
+  "navigation.tracking",
+  "search.highlight",
+]
+
+[project.theme.palette]
+scheme = "slate"
+primary = "indigo"
+accent = "amber"
+
+[project.markdown_extensions]
+abbr = {}
+admonition = {}
+attr_list = {}
+def_list = {}
+md_in_html = {}
+toc.permalink = true
+pymdownx.details = {}
+pymdownx.highlight.anchor_linenums = true
+pymdownx.highlight.line_spans = "__span"
+pymdownx.highlight.pygments_lang_class = true
+pymdownx.inlinehilite = {}
+# Code is embedded from the project's own files, so it never goes stale.
+pymdownx.snippets.base_path = ["."]
+pymdownx.snippets.check_paths = true
+# Terms defined in docs/.terms.md show their meaning on hover on every page.
+pymdownx.snippets.auto_append = ["docs/.terms.md"]
+pymdownx.superfences.custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]

@@ -1,0 +1,73 @@
+[project]
+name = "lira-sapr-mcp"
+version = "0.2.0"
+description = "MCP server that lets AI agents drive LIRA-SAPR (LIRA-FEM) through its COM API"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "k3nsu1" }]
+requires-python = ">=3.13"
+keywords = ["mcp", "lira-sapr", "lira-fem", "fem", "structural-analysis"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "ezdxf>=1.4.5",
+    "fpdf2>=2.9.0",
+    "matplotlib>=3.11.2",
+    "mcp>=2.3,<3",
+    "numpy>=2.5.4",
+    "openpyxl>=3.1",
+    "pandas>=3.1",
+    "python-docx>=1.2.0",
+    "pywin32>=311; sys_platform == 'win32'",
+]
+
+[project.urls]
+Repository = "https://github.com/k3nsu1/LIRA-SAPR-"
+Documentation = "https://github.com/k3nsu1/LIRA-SAPR-#readme"
+
+[project.scripts]
+lira-sapr-mcp = "lira_sapr_mcp.__main__:main"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4",
+    "pytest>=8",
+    "ruff>=0.13",
+    "zensical==0.0.74",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lira_sapr_mcp"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+# spikes: throwaway experiments against live LIRA. docs: code blocks there embed source
+# files by snippet markers, which the formatter would mangle.
+extend-exclude = ["spikes", "docs"]
+force-exclude = true
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+# LIRA speaks Russian: protocol lines and table values legitimately contain Cyrillic.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not lira'"
+markers = [
+    "lira: needs a running licensed LIRA-SAPR on this machine (run with -m lira)",
+]

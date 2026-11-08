@@ -1,0 +1,2242 @@
+## Application -- 
+## IApplication -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   TypeExternalObj()  // 
+   NewDocument()  // 
+   SetStatusString(sText)  // 
+   OpenLastDocument()  // 
+   OpenDocument(sPath, bDlg)  // 
+   GetCountRecentFile()  // 
+   GetNameRecentFile(index)  // 
+   GetSpecPath(TypePath)  // 
+   GetFactory()  // 
+   GetActiveSapfirView()  // 
+   PutDisplayString(wWhere, sText, dwData)  // 
+   EnableProgressBar(nIndex, nTotal)  // 
+   SetProgress(iCurr)  // 
+   DisableProgressBar()  // 
+   GetFileDialog()  // 
+   GetSystemColor(type, ColorBuf)  // 
+   GetActiveDoc()  // 
+   AppVersion()  // 
+   AfxMessage(strMsg, mode)  // 
+   GetSolver()  // 
+   GetKmSection()  // 
+   SetActiveDoc(sPath)  // 
+   SetLockedApp(sNameApp)  // 
+   ReleaseLockedApp(sNameApp)  // 
+   CurrentLanguage(mode)  // 
+   CurrentLanguage(mode)  // 
+   FindFile(sPath, sFile)  // 
+   ActiveMontag()  // 
+   ActiveMontag()  // 
+   IsEscProgressBar()  // 
+   OutWinHelp(IdHelp, mode)  // 
+   RunCommand(id_command)  // 
+   GetLocatorUser()  // 
+   LoadServiceHtml(sPath)  // 
+   GetRibbonStyle()  // 
+   ImportFile(FileName)  // 
+   Visible()  // 
+   Visible()  // 
+   SetForeground()  // 
+   GetCurentNode()  // 
+   GetSetMaterials()  // 
+   GetMaterialDlg()  // 
+   GetDocByID(DocID)  // 
+   SaveImgRecentFile(FileName)  // 
+   PostMsg(id_command, mode, mode2)  // 
+   SendMsg(id_command, mode, mode2)  // 
+   IsSiteConnect()  // 
+   GetColorPalette()  // 
+   GetAssistant()  // 
+   GetMainHandle()  // 
+   GetAcadVersion()  // 
+   RemovePyNodeFromPanel(strGUID)  // 
+   OpenFolder(pathFile)  // 
+   ClearOutputWnd(wWhere)  // 
+## INT_PTR -- 
+## SapfirDoc -- 
+## ISapfirDoc -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   GetApplication()  // 
+   NewProject()  // 
+   GetProjectByID(idProject)  // 
+   DelProjectByID(idProject)  // 
+   ReadProject(pathProject)  // 
+   DrawModel(drawParam)  // 
+   RunCommand(id_command)  // 
+   RemoveAllProjects()  // 
+   CountProjects()  // 
+   GetProjectByIndex(indexProject)  // 
+   DelProjectByIndex(indexProject)  // 
+   TypeExternalObj()  // 
+   GetParametersDlg()  // 
+   GetActiveProject()  // 
+   GetActiveStorey()  // 
+   FindModelByID(indexModel)  // 
+   SetActiveStorey(idStorey)  // 
+   BeginUndo()  // 
+   EndUndo()  // 
+   BeginUndoParam(IdCommand, pathProject, IdObject)  // 
+   EndUndoParam(IdCommand, pathProject, IdObject)  // 
+   GetLocatorUser()  // 
+   GetDraftSet()  // 
+   GetMaterialByID(ID)  // 
+   GetMaterialByGUID(GUID)  // 
+   CurrentLanguage(mode)  // 
+   CurrentLanguage(mode)  // 
+   Title()  // 
+   Title()  // 
+   BlockGroupSelModel()  // 
+   BlockUnGroupSelModel()  // 
+   GuidGen()  // 
+   GetActiveSapfirView()  // 
+   PutDisplayString(wWhere, sText, dwData)  // 
+   WriteDraftSheet(NameFile, ArrIdSheet)  // 
+   ReadDraftSheet(NameFile)  // 
+   AfxMessage(strMsg, mode)  // 
+   ShowDraftSheet(IdDraftSheet, mode)  // 
+   CountSelectedModel()  // 
+   GetSelectedModel(index)  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   fullPath()  // 
+   GetSetLayers()  // 
+   ObjectLookUp(ObjID)  // 
+   UnSelectAllObject(mode)  // 
+   CreateNotesSelectObj()  // 
+   GetSelectedModel2(index, mode)  // 
+   GetSetMaterials()  // 
+   ObjectViewProp(ObjID)  // 
+   RegenAllModels()  // 
+   GetActiveDoc()  // 
+   FindModelByID2(indexModel)  // 
+   ShowNode(ObjID)  // 
+   BeginGroupUndo()  // 
+   EndGroupUndo()  // 
+   BeginGroupUndoParam(IdCommand, pathProject, IdObject)  // 
+   EndGroupUndoParam(IdCommand, pathProject, IdObject)  // 
+   GetColorDlg()  // 
+   GetAssistant()  // 
+   SaveToLib(strPath, pVal)  // 
+   SavePicByModel(strPath, Models, Size_X, Size_Y, TypePr)  // 
+   GetStandart()  // 
+   GetMontag()  // 
+   GetTypeNameModel(type)  // 
+   SelectModels(IdObj, mode)  // 
+   ClearDisplayString(wWhere)  // 
+   OutWinHelp(IdHelp, mode)  // 
+   NewProjectAnalytical()  // 
+   ImportFile(IniFileName)  // 
+   RemoveMnParam(mode, Param)  // 
+   GetFactory()  // 
+   GetSolver()  // 
+   LibMdlDlg()  // 
+   ConvertSelectObj(TypeModel)  // 
+   LoadServiceHtml(sPath)  // 
+   showModalDialog(sPath, Title, dialogArguments, atribute)  // 
+   SetObjPropertiesWnd(pVal)  // 
+   GetMaterialDlg()  // 
+   AddToLibPrj(pVal)  // 
+   ImportRevitModel(IniFileNameIFC, IniFileNameLIRAKM)  // 
+   AutoUpdatePODMan(mode)  // 
+   SaveTeklaXML(pstrPath)  // 
+   ConvertSelectObjPar(TypeModel, Param, test, ErrCode)  // 
+   MakeVisualModel()  // 
+   DelModelByID(idModel)  // 
+   GetListEngine(arrayParam)  // 
+   SaveObjsToLib(strPath, IdObj)  // 
+   DelArrModelsByID(arrID, Param)  // 
+   IDdoc()  // 
+   CalculateLayersNumObj()  // 
+   GetHilightColor()  // 
+   UpdateGenerator(mode, data)  // 
+   ExtLocked()  // 
+   ExtLocked()  // 
+   UndoRedoRun(IdCmd)  // 
+   GetAdrModel()  // 
+   SetLockedDoc(sNameApp)  // 
+   ReleaseLockedDoc(sNameApp)  // 
+   GetLibModByParam(type_model, arrayParam)  // 
+   GetModelByParam(NameParam, val)  // 
+   GetInstanceGuid()  // 
+   GetTmpObjects(type)  // 
+   GetLibModByID(idMod)  // 
+   GetColorPalette()  // 
+   RunTrussExMatDataDlg(pVal, roleElement)  // 
+   GetLoadCaseByNameBySaf(sNameLC, actionTp, loadTp, durTp)  // 
+   AddLoadCombinationBySaf(strName, dwMode, idx, dCoeff, loadNameVal, coefVal)  // 
+   GetLoadCaseHolder()  // 
+   UnmarkObjects(bUpdate)  // 
+   RunModelDiagnostics()  // 
+   DopuskParameter(name)  // 
+   DopuskParameter(name)  // 
+   SetMnDopuskParam(arrayParam, mode)  // 
+   GetMnDopuskParam(arrayParam, mode)  // 
+   WriteFileModel(strPath, pVal)  // 
+   ReadFileModelHolder(strPath, pVal)  // 
+   ReadFileModelInHolder(strPath, pModHol)  // 
+## IAutoProject -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   CountStorey()  // 
+   GetStoreyByIndex(indexStorey)  // 
+   GetStoreyByID(idStorey)  // 
+   Command(NameCommand, arrayParam)  // 
+   DelStoreyByIndex(indexStorey)  // 
+   DelStoreyByID(idStorey)  // 
+   SetPosition(pos_x, pos_y, pos_z)  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   NewStorey(nameStorey)  // 
+   ID()  // 
+   CountNodes()  // 
+   NewNode(nameNode)  // 
+   GetNodeByIndex(indexNode)  // 
+   GetNodeByID(idNode)  // 
+   GetFirstStorey(b_up)  // 
+   GetNextStorey(pCurSt, b_up)  // 
+   SetLevels(arrayLevel)  // 
+   GetLevels(arrayLevel)  // 
+   ConformObjByStorey()  // 
+   GetStoreyByLevel(level)  // 
+   ShiftStoreys(pCurSt, val)  // 
+   NewModel(type)  // 
+   CorrectAxisInProject(undoMode)  // 
+   GetModelByID(idModel)  // 
+   GetArrayEngine(arrayID)  // 
+   AddModel(libMod)  // 
+   CopyEngine(InID, OutID)  // 
+   IsRemoved()  // 
+   ExtLocked()  // 
+   ExtLocked()  // 
+   GetHostEngine(idModel)  // 
+   SetLockedPrj(sNameApp)  // 
+   ReleaseLockedPrj(sNameApp)  // 
+   OperWithAllEngine(mode)  // 
+   AutoUpdateModelEngine()  // 
+   AutoUpdateModelEngine()  // 
+   UpdateModel(mode)  // 
+   GetModelByParam(NameParam, val)  // 
+   GetInstanceGuid()  // 
+   GetArrayEngineByType(arrayParam, arrayID)  // 
+   GetDocument()  // 
+   LayerID()  // 
+   LayerID()  // 
+   FindStoreyByLevel(level)  // 
+   GetVectStLevels(arrayLevel)  // 
+   ConformObjByStoreyFlg(updateMode, undoMode)  // 
+   GetModelHolder()  // 
+## AutoProject -- Проект здания или контейнер аналитических моделей здания
+## AutoStorey -- Этаж здания или аналитическая модель здания
+## IAutoStorey -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   CountModel()  // 
+   GetModelByIndex(indexModel)  // 
+   GetModelByID(idModel)  // 
+   Command(NameCommand, arrayParam)  // 
+   DelModelByID(idModel)  // 
+   DelModelByIndex(indexModel)  // 
+   RemoveAll()  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   NewModel(TypeModel)  // 
+   ID()  // 
+   MultMatrix(pVal)  // 
+   CorrectJoint()  // 
+   GetModelByIndex2(indexModel)  // 
+   NewModel2(TypeModel)  // 
+   GetAdrStorey()  // 
+   SetIdLevel(idDnLevel, idUpLevel)  // 
+   GetIdLevel(arrayLevel)  // 
+   GetValueLevel(arrayLevel)  // 
+   GetValueAnLevel(arrayLevel)  // 
+   TestDuplicat(pMod, mode)  // 
+   SetActive()  // 
+   GetProject()  // 
+   RemoveAllJoint(mode)  // 
+   AddModelObj(pMod, newVal)  // 
+   GetModelHolder(AutoCreate)  // 
+## AutoModel -- 
+## IAutoModel -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   GetContour()  // 
+   GetAxisLine()  // 
+   NewHole(typeHole)  // 
+   GetModel3D()  // 
+   GetPlanModel()  // 
+   NewLibHole(GUID)  // 
+   AddToLibPrj()  // 
+   CleanBaseModel(mode)  // 
+   GetParentObj()  // 
+   GetApplication()  // 
+   SetValidModel(Param, mode)  // 
+   SetPosition(pos_x, pos_y, pos_z)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   RemoveMnParam(mode, Param)  // 
+   SetColor(colorLine, colorFill)  // 
+   SetRotate(rot_X, rot_Y, rot_Z)  // 
+   GetPosition(arrayParam)  // 
+   Select()  // 
+   Select()  // 
+   GetMaterial()  // 
+   CorrectJoint()  // 
+   SetParamMatrix(pVal)  // 
+   GetParamMatrix(pVal)  // 
+   CountChild()  // 
+   GetChildByIndex(indexModel)  // 
+   Symmetry(par)  // 
+   SetPosHole(pos, ID)  // 
+   MultMatrix(pVal)  // 
+   ID()  // 
+   GetKmSection()  // 
+   GetParentStorey()  // 
+   GetMultiContour()  // 
+   MaterialID()  // 
+   MaterialID()  // 
+   LayerID()  // 
+   LayerID()  // 
+   RegenModel()  // 
+   GetChildByIndex2(indexModel)  // 
+   GetSolver()  // 
+   GetFactory()  // 
+   GetMatrix()  // 
+   Clone()  // 
+   GetActiveDoc()  // 
+   Cutting(PolyLine, mode)  // 
+   HoleType()  // 
+   HoleType()  // 
+   GetColorDlg()  // 
+   GetAdrModel()  // 
+   ResetBT()  // 
+   GetCapital(AutoCreate)  // 
+   DelCapital()  // 
+   GetRealDisp()  // 
+   SetColorMaterial(GUID)  // 
+   SetAxisLine(pVal)  // 
+   SetMatrix(pVal)  // 
+   CollectArmSpec()  // 
+   GetMnParam2(mode)  // 
+   GetStandart()  // 
+   CollectArmExtData()  // 
+   GetMontagId()  // 
+   TestPosHole()  // 
+   FindStandartSection()  // 
+   CollectArmCage()  // 
+   SetRealModel(pVal)  // 
+   GetModelArm()  // 
+   IsValid(str)  // 
+   ClipByModel(pMod, mode)  // 
+   GetLineSectionPlane(SecPlane)  // 
+   GetBox(minmax)  // 
+   GetIDSheet(IdSheet)  // 
+   BoolByModel(pMod, mode)  // 
+   AddParameter(NameParam, newVal, type, mode)  // 
+   MakeModel()  // 
+   IsZBK()  // 
+   GetConstrModel()  // 
+   NewHoleGlb(typeHole, bufPnt)  // 
+   GetUnderCap(AutoCreate)  // 
+   DelUnderCap()  // 
+   Move(dx, dy, dz)  // 
+   SetMultiContour(pVal)  // 
+   Copy(pVal)  // 
+   BlockedRegen()  // 
+   BlockedRegen()  // 
+   TestDuplicat(pMod, mode)  // 
+   CorrectModel(mode)  // 
+   TmpId()  // 
+   TmpId()  // 
+   GetValidModel(Param)  // 
+   ID()  // 
+   AddAdtLines(pMod, Param)  // 
+   AddAdtPoints(bufPnt, Param)  // 
+   GetAdtModelCount()  // 
+   GetAdtModel(index)  // 
+   GetFeAnalitic(auto_create)  // 
+   GetParameter(MnParam, mode)  // 
+   GetRealObjPtr()  // 
+   GetExtModel3D()  // 
+   GetFeaData()  // 
+   GetMnParamSubObj(arrayParam, mode, subId)  // 
+   SetLoadCaseType(type)  // 
+   GetLoadCaseType()  // 
+   ConvertModel(type)  // 
+   CollectArmSpecMode(mode)  // 
+   GetHoldPolilyneCont(pMod, matr)  // 
+   SetConnectObj(pMod, Param)  // 
+   Udata()  // 
+   Udata()  // 
+   GetArraySourceModel()  // 
+   SetLoadCaseName(name, AutoCreate)  // 
+   SetGlbContour(bufPnt)  // 
+   SetLoadCaseID(ID)  // 
+   GetLoadCaseID()  // 
+   SetLoadTxtLineFeed(numb)  // 
+   IsRemoved()  // 
+   GetHostEngine()  // 
+   InitDefault(type)  // 
+   GetParameterGroup(MnParam, mode)  // 
+   FullTypeModel()  // 
+   Foundation()  // 
+   Foundation()  // 
+   ConvertModel2(type, flgSave, pArDisp)  // 
+   PreDeleteModel()  // 
+   CopyDrawParam(pVal)  // 
+   SetContourSlopeSlab(pMod, thick)  // 
+   SetGlbHolePrism(pMod)  // 
+   ActualizeTrussExtMatDataBeam()  // 
+   GetExtDataStrByTruss(type)  // 
+   SetDirectionLoad(pVal)  // 
+   ConnectToObj(ConnObj, link, oper, code)  // 
+   AddBaseLoadObj(pMod, Param)  // 
+   GetAnaliticLine()  // 
+   GetAnaliticLevelReal(Param)  // 
+   GetModelHolder()  // 
+   GetHoleContourAll()  // 
+   SetPoints(bufPnt)  // 
+   InitHoleFormCont()  // 
+   SetPosition2(pos_x, pos_y, pos_z)  // 
+   ConvertToBeamAxis(type, pModLine, flgSave, pArDisp)  // 
+   GetOneParamLSC(pValPnt, pValVect)  // 
+   GetDirectionLoad(pValVect)  // 
+   GetConnectObjs(Param)  // 
+   GetPositionLoad2(arrayParam)  // 
+   InitHoleParam(GuidCont, arrayParam)  // 
+   InsertHole(pPoly)  // 
+   SetParameters(arrayParam, mode)  // 
+   GetArrayParam(mode)  // 
+   SetArrayParam(mode, pVal)  // 
+   GetParameterGroupArray(MnParam, arrayParam, mode)  // 
+## AutoVectContour -- 
+## IAutoVectContour -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   RemoveAll()  // 
+   TrimLineByCont(Points)  // 
+   GetBox(minmax)  // 
+   GetCenterOfGravity(pnt)  // 
+   CountLine()  // 
+   GetLine(index)  // 
+   GetAdrModel()  // 
+   Copy(pVal)  // 
+   NewPolyLine()  // 
+   Symmetry(mode)  // 
+   AddPolyLine(DispModel)  // 
+   GetFormCont(Param)  // 
+   MultMatrix(pVal)  // 
+   AddContour(DispModel)  // 
+## AutoPolyLine -- 
+## IAutoPolyLine -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   SetPoints(bufPnt)  // 
+   AddPoints(bufPnt)  // 
+   CountLine()  // 
+   GetPoints(bufPnt)  // 
+   Equidistant(dist)  // 
+   Color()  // 
+   Color()  // 
+   RemoveAll()  // 
+   GetLine(index)  // 
+   ID()  // 
+   type()  // 
+   type()  // 
+   Width()  // 
+   Width()  // 
+   Pickable()  // 
+   Pickable()  // 
+   AddLine(typeLine, paramLine)  // 
+   GetAdrModel()  // 
+   Copy(pVal)  // 
+   MultMatr(matr)  // 
+   GetNormal(vect)  // 
+   Invert()  // 
+   GetTangentVectByPnt(pnt, vect)  // 
+   GetBox(minmax)  // 
+   HoleCont()  // 
+   HoleCont()  // 
+   GetCenterOfGravity(pnt)  // 
+   Closed()  // 
+   Closed()  // 
+   AddModel(DispModel)  // 
+   UserType()  // 
+   UserType()  // 
+   TestValid(mode)  // 
+   Correction(mode)  // 
+   GetFormCont(Param)  // 
+   SetZ(z)  // 
+   TestPntInContour(x, y, border)  // 
+   AddNurbAsBezier(Degree, CV, Knot, Param)  // 
+   Form()  // 
+   Form()  // 
+   GetNPoints(bufPnt, num)  // 
+   GetSquare()  // 
+   GetPntByParam(Param, pPnt, pVect)  // 
+   GetAxisContours(pThick)  // 
+   CopyDrawParam(DispModel)  // 
+   Length()  // 
+   ClonePart(param1, param2)  // 
+   LineWidth_mm(nScale)  // 
+   LineTypeNameID()  // 
+   LineTypeNameID()  // 
+   FillColor()  // 
+   FillColor()  // 
+   Fill()  // 
+   Fill()  // 
+   TestIntersection(DispModel, Param)  // 
+   LayerID()  // 
+   LayerID()  // 
+   CutLine(newVal, Param)  // 
+   IsPlane(pVectNorm)  // 
+   GetPointsByStep(bufPnt, step, mode)  // 
+   SetTypeStep(newVal)  // 
+   TestOverlap(DispModel, Param)  // 
+   MakeStrip(DW1, DW2)  // 
+## AutoModel3D -- 
+## IAutoModel3D -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   CountModel()  // 
+   GetModelByIndex(indexModel)  // 
+   DelModelByIndex(indexModel)  // 
+   GetSurfCreator()  // 
+   RemoveAll()  // 
+   CreateMatrix()  // 
+   CalculateNormals(mode)  // 
+   MatId()  // 
+   MatId()  // 
+   SetMatr(matr)  // 
+   MultMatr(matr)  // 
+   GetBox(box)  // 
+   Symmetry(par)  // 
+   Pickable()  // 
+   Pickable()  // 
+   Block()  // 
+   Block()  // 
+   NewModel(TypeModel)  // 
+   ID()  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   ValidateModel()  // 
+   ValidateModel()  // 
+   GetModelByIndex2(indexModel)  // 
+   GetSolver()  // 
+   AddModel(DispModel)  // 
+   GetFactory()  // 
+   SetColor(colorLine, colorFill)  // 
+   Invert()  // 
+   GetStandart()  // 
+   GetMatrix()  // 
+   AddArrayPolylines(Nums, Vertex, mode)  // 
+   AddArrayPoints(Vertex, mode)  // 
+   GetMinMaxByAxis(box, mode)  // 
+   AddMesh3D(Vertex, Face, Normal, Param)  // 
+   GetRotate(matr, pVal, mode)  // 
+   GetContourModel(axis, level)  // 
+   GetBoxInLevel(box, leveln, leveUp)  // 
+   ChildrenMultMatrix(matr)  // 
+   SetMatrix(pVal)  // 
+   GetParamMatrix(pVal)  // 
+   LayerID()  // 
+   LayerID()  // 
+## AutoSurfCreator -- 
+## IAutoSurfCreator -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   CreateSurface(TypeModel, Param)  // 
+   GetContour()  // 
+   CreateMatrix()  // 
+   ReadModel(NameModel)  // 
+   CloneLastModel()  // 
+   GetLastModel()  // 
+   DelLastModel()  // 
+   SetColor(colorLine, colorFill)  // 
+   Command(NameCommand, arrayParam)  // 
+## AutoMatrix -- 
+## IAutoMatrix -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   SetValue(value, mode)  // 
+   GetValue(pVal)  // 
+   Translate(x, y, z, mode)  // 
+   Rotate(x, y, z, mode)  // 
+   Scale(x, y, z, mode)  // 
+   SetReper(X_x, X_y, X_z, Y_x, Y_y, Y_z, Z_x, Z_y, Z_z, mode)  // 
+   Identity()  // 
+   Inverse()  // 
+   MultPoints(Points)  // 
+   Symmetry(par, mode)  // 
+   GetAdrMatr()  // 
+   Copy(pVal)  // 
+   MultMatrix(pVal)  // 
+   SetReperVNorm(v_x, v_y, v_z, mode)  // 
+   SetReperVNormBack(v_x, v_y, v_z, mode)  // 
+   SetRotate(value, mode)  // 
+   GetRotate(pVal)  // 
+   GetTranslate(pVal)  // 
+   MultPoint(p_x, p_y, p_z)  // 
+   MultVector(v_x, v_y, v_z)  // 
+## AutoParametersDlg -- 
+## IAutoParametersDlg -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   DoModal()  // 
+   SetWinRect(left, top, right, bottom)  // 
+   SetTitle(newVal)  // 
+   Parameter(name)  // 
+   SetExtHWND(newVal)  // 
+   SetObject(pMod)  // 
+   SetModeParGet(ModeParGet)  // 
+   SetDocument(pDisp)  // 
+   RemoveMnParam(arrayParam, mode)  // 
+   SetModeDlg(mode)  // 
+   GetArrayParam(mode)  // 
+   SetArrayParam(mode, pVal)  // 
+## AutoLocatorUser -- 
+## IAutoLocatorUser -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   SetActiveObj(ID)  // 
+   GetActiveObj()  // 
+   PickMode()  // 
+   PickMode()  // 
+   GetDialogModel()  // 
+   GetDynamicModel()  // 
+   SetObjPropertiesWnd()  // 
+   GetActiveModel()  // 
+   SetActiveModel(pVal)  // 
+   SetFullTypeModel(ID, subId)  // 
+   SelectMode()  // 
+   SelectMode()  // 
+   SetObjectTreePrj(pVal)  // 
+   OutHtmlTitle(newTitle)  // 
+   SetFlgEditControl(newVal)  // 
+   GetHWND()  // 
+   SetAllFilterSelect(__MIDL__IAutoLocatorUser0000)  // 
+   SetFilterSelect(bufFilter, __MIDL__IAutoLocatorUser0001)  // 
+   GetFilterSelect(bufFilter)  // 
+## AutoLibMdlDlg -- 
+## IAutoLibMdlDlg -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   TypeExternalObj()  // 
+   GetBaseModel(TypeModel)  // 
+   GetModelHolder()  // 
+   GetHole(TypeModel)  // 
+   SetScale(Scale)  // 
+   GetDraftSheet()  // 
+   Enable3D()  // 
+   Enable3D()  // 
+   Enable2D()  // 
+   Enable2D()  // 
+   TitleDlg()  // 
+   TitleDlg()  // 
+   GetActiveDoc()  // 
+   GetApplication()  // 
+   DoModal(pdispMC)  // 
+   SetExtHWND(newVal)  // 
+   SetMode(mode)  // 
+## AutoDim -- 
+## IAutoDim -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   SetDimParam(type, dir, name, Points)  // 
+   SetColor(colorLine, colorText)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   Pickable()  // 
+   Pickable()  // 
+   SetPoints(Points)  // 
+   ID()  // 
+   GetDimParam(type, txt, Points)  // 
+   GetColor(colorLine, colorText)  // 
+   LayerID()  // 
+   LayerID()  // 
+   GetModel3D()  // 
+## AutoLine -- 
+## IAutoLine -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   SetPoints(bufPnt)  // 
+   SetPoints2D(x1, y1, x2, y2)  // 
+   SetPoints3D(x1, y1, z1, x2, y2, z2)  // 
+   Color()  // 
+   Color()  // 
+   type()  // 
+   type()  // 
+   Width()  // 
+   Width()  // 
+   GetControlPar(Param)  // 
+   SetControlPar(type, Param)  // 
+   Pickable()  // 
+   Pickable()  // 
+   ID()  // 
+   ID()  // 
+   GetTangentVectByPnt(pnt, vect)  // 
+   SetNormal(vx, vy, vz)  // 
+   GetNormal(vect)  // 
+   GetAdrModel()  // 
+   Copy(pVal)  // 
+   TrimLine(x, y, z, mode)  // 
+   GetPoints(bufPnt)  // 
+   CrsID()  // 
+   CrsID()  // 
+   UserType()  // 
+   UserType()  // 
+   GetPntByParam(Param, pPnt, pVect)  // 
+   MultMatr(matr)  // 
+   Closed()  // 
+   Closed()  // 
+   LineWidth_mm(nScale)  // 
+   LineTypeNameID()  // 
+   LineTypeNameID()  // 
+   FillColor()  // 
+   FillColor()  // 
+   Fill()  // 
+   Fill()  // 
+   GetPointsByStep(stepAppr, mode, delta, ret)  // 
+   GetPntByPos(Length, ret)  // 
+   Invert()  // 
+   LayerID()  // 
+   LayerID()  // 
+   IsParallel(pDisp, delta, mode, Param)  // 
+## AutoDraftSheet -- 
+## IAutoDraftSheet -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   GetFormDraft()  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   SizeX()  // 
+   SizeX()  // 
+   SizeY()  // 
+   SizeY()  // 
+   GetMargin(Margin)  // 
+   SetMargin(Margin)  // 
+   GetDocument()  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   HorzPage()  // 
+   HorzPage()  // 
+   TypeFormat()  // 
+   TypeFormat()  // 
+   SelectObj(IdObj, mode)  // 
+   GetRootDraft()  // 
+   GetApplication()  // 
+   ID()  // 
+   CountSelectedModel()  // 
+   GetSelectedModel(index)  // 
+   GetSelectedModel2(index, mode)  // 
+   RemoveMnParam(mode, Param)  // 
+   RegenModel()  // 
+   GetStandart()  // 
+   ModeImgName()  // 
+   ModeImgName()  // 
+   ImgName()  // 
+   ImgName()  // 
+   NameTemplate()  // 
+   NameTemplate()  // 
+   NameFont()  // 
+   NameFont()  // 
+   PathFont()  // 
+   PathFont()  // 
+   ValidateModel()  // 
+   ValidateModel()  // 
+## AutoDraft -- 
+## IAutoDraft -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   CountModel()  // 
+   GetModelByIndex(indexModel)  // 
+   DelModelByIndex(indexModel)  // 
+   RemoveAll()  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   Pickable()  // 
+   Pickable()  // 
+   Block()  // 
+   Block()  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   NewModel(TypeModel)  // 
+   GetBox(box)  // 
+   SetBox(box)  // 
+   Move(x, y)  // 
+   Rotate(x, y, angle)  // 
+   MultMatr(matr)  // 
+   Symmetry(par)  // 
+   GetDraftSheet()  // 
+   ID()  // 
+   ID()  // 
+   DisableRegen()  // 
+   DisableRegen()  // 
+   ValidateModel()  // 
+   ValidateModel()  // 
+   GetModelByIndex2(indexModel)  // 
+   GetStandart()  // 
+   ReadModel(NameModel)  // 
+   CreateMatrix()  // 
+   GetModelVision()  // 
+   SetMatrix(pVal)  // 
+   GetMatrix()  // 
+   GetParamMatrix(pVal)  // 
+   LayerID()  // 
+   LayerID()  // 
+## AutoTable -- 
+## IAutoTable -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   ID()  // 
+   Pickable()  // 
+   Pickable()  // 
+   GetPosition(poz)  // 
+   SetPosition(x, y)  // 
+   GetWidth()  // 
+   SetWidth(dblWidth)  // 
+   GetHeight()  // 
+   SetHeight(dblHeight)  // 
+   GetMinWidth()  // 
+   GetMinHeight()  // 
+   GetRowCount()  // 
+   GetColumnCount()  // 
+   SetGridSize(iRowCount, iColumnCount)  // 
+   GetFlowDirection_Flag()  // 
+   SetFlowDirection_Flag(pVal)  // 
+   GetGridVisibility_Flag(iRow, iColumn, enCellEdgeMask_Flag)  // 
+   SetGridVisibility_Flag(iRow, iColumn, enCellEdgeMask_Flag, bVisibility_Flag)  // 
+   GetCellOtstup(iRow, iColumn, oCellOtstup)  // 
+   SetCellOtstup(iRow, iColumn, oCellOtstup)  // 
+   GetColumnWidth(iColumn)  // 
+   SetColumnWidth(iColumn, dblColumnWidth)  // 
+   SetColumnWidthAll(dblColumnWidth)  // 
+   GetRowHeight(iRow)  // 
+   SetRowHeight(iRow, dblRowHeight)  // 
+   SetRowHeightAll(dblRowHeight)  // 
+   GetMinColumnWidth(iColumn)  // 
+   GetMinRowHeight(iRow)  // 
+   GetColumnName(iColumn)  // 
+   SetColumnName(iColumn, sColumnName)  // 
+   GetCellStyle_Flag(iRow, iColumn)  // 
+   SetCellStyle_Flag(iRow, iColumn, enCellStyle_Flag)  // 
+   GetText(iRow, iColumn)  // 
+   SetText(iRow, iColumn, sText)  // 
+   GetIsEmpty_Flag(iRow, iColumn)  // 
+   GetTextHeight(iRow, iColumn)  // 
+   SetTextHeight(iRow, iColumn, dblTextHeight)  // 
+   GetIsAutoScale_Flag(iRow, iColumn)  // 
+   SetIsAutoScale_Flag(iRow, iColumn, bIsScale_Flag)  // 
+   GetAlignment_Flag(iRow, iColumn)  // 
+   SetAlignment_Flag(iRow, iColumn, enAlignment_Flag)  // 
+   GetGridLineStyle_Flag(iRow, iColumn, enLineType_Flag)  // 
+   SetGridLineStyle_Flag(iRow, iColumn, enLineType_Flag, enLineStyle_Flag)  // 
+   GetGridDoubleLineSpacing(iRow, iColumn, enLineType_Flag)  // 
+   SetGridDoubleLineSpacing(iRow, iColumn, enLineType_Flag, dblLineSpacing)  // 
+   InsertRows(iRow, dblRowHeight, iRowCount)  // 
+   InsertColumn(iColumn, dblColumnWidth, iColumnCount)  // 
+   SetGridLineWeight(iRow, iColumn, enLineType_Flag, enLineWeight)  // 
+   GetGridLineWeight(iRow, iColumn, enLineType_Flag)  // 
+   DeleteRows(iRow, iRowCount)  // 
+   DeleteColumns(iColumn, iColumnCount)  // 
+   MergeCells(oCellRange)  // 
+   UnmergeCells(oCellRange)  // 
+   GetMergeRange(iRow, iColumn, oCellRange)  // 
+   GetBackgroundColor(iRow, iColumn)  // 
+   SetBackgroundColor(iRow, iColumn, dwBackgroundColor)  // 
+   GetContentColor(iRow, iColumn)  // 
+   SetContentColor(iRow, iColumn, dwContentColor)  // 
+   GetGridColor(iRow, iColumn, enLineType_Flag)  // 
+   SetGridColor(iRow, iColumn, enLineType_Flag, dwGridColor)  // 
+   GetContentModel3D(iRow, iColumn)  // 
+   NewContentModel3D(iRow, iColumn)  // 
+   SetCellRangeLineStyle_Flag(oCellRange, enLineType_Flag, enLineStyle_Flag)  // 
+   SetCellRangeLineWeight(oCellRange, enLineType_Flag, weight)  // 
+   GetAllGridColor()  // 
+   SetAllGridColor(dwGridColor)  // 
+   GetRotationAngle()  // 
+   SetRotationAngle(dblRotationAngle)  // 
+   GetCellType_Flag(iRow, iColumn)  // 
+   SetCellType_Flag(iRow, iColumn, enCellType_Flag)  // 
+   AddRow(dblRowHeight)  // 
+   GetAppearence(iRow, iColumn)  // 
+   SetAppearence(iRow, iColumn, Appearence)  // 
+   GetLineSpacing(iRow, iColumn)  // 
+   SetLineSpacing(iRow, iColumn, dblLineSpacing)  // 
+   GetTextAngle(iRow, iColumn)  // 
+   SetTextAngle(iRow, iColumn, dblTextAngle)  // 
+   GetTextFitIn(iRow, iColumn)  // 
+   SetTextFitIn(iRow, iColumn, bFitIn)  // 
+   GetTextFitStretch(iRow, iColumn)  // 
+   SetTextFitStretch(iRow, iColumn, bFitStretch)  // 
+   GetTextAutoWordWrap(iRow, iColumn)  // 
+   SetTextAutoWordWrap(iRow, iColumn, bAutoWordWrap)  // 
+   GetTransparent(iRow, iColumn)  // 
+   SetTransparent(iRow, iColumn, bTransp)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   ValidateModel()  // 
+   ValidateModel()  // 
+   MakeModel()  // 
+   LayerID()  // 
+   LayerID()  // 
+## AutoDraftSet -- 
+## IAutoDraftSet -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   CountDraftSheet()  // 
+   GetDraftSheet(index)  // 
+   DelDraftSheetByIndex(indexModel)  // 
+   NewDraftSheet()  // 
+   GetApplication()  // 
+   GetDocument()  // 
+   GetStandart()  // 
+   NameTemplate()  // 
+   NameTemplate()  // 
+## AutoText -- 
+## IAutoText -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   Height()  // 
+   Height()  // 
+   Color()  // 
+   Color()  // 
+   SetPositionXY(posX, posY)  // 
+   SetZoneXY(posX1, posY1, posX2, posY2)  // 
+   angle()  // 
+   angle()  // 
+   Alignment()  // 
+   Alignment()  // 
+   FitStretch()  // 
+   FitStretch()  // 
+   FitIn()  // 
+   FitIn()  // 
+   Appearence()  // 
+   Appearence()  // 
+   AutoScale()  // 
+   AutoScale()  // 
+   SetPosition(pnt)  // 
+   Pickable()  // 
+   Pickable()  // 
+   Text()  // 
+   Text()  // 
+   Thickness()  // 
+   Thickness()  // 
+   ID()  // 
+   GetPosition(point)  // 
+   Scale()  // 
+   Scale()  // 
+   AutoWordWrap()  // 
+   AutoWordWrap()  // 
+   Width()  // 
+   Width()  // 
+   Mode3D()  // 
+   Mode3D()  // 
+   NameFont()  // 
+   PathFont()  // 
+   LayerID()  // 
+   LayerID()  // 
+   GetBox(box)  // 
+## AutoMaterial -- 
+## IAutoMaterial -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   CountLayerMat()  // 
+   GetLayerMat(index)  // 
+   AddLayerMat(ID)  // 
+   AddLayerMatGuid(GUID)  // 
+   ID()  // 
+   GUID()  // 
+   name()  // 
+   name()  // 
+   YoungModulus()  // 
+   YoungModulus()  // 
+   PoissonRatio()  // 
+   PoissonRatio()  // 
+   Density()  // 
+   Density()  // 
+   Expansion()  // 
+   Expansion()  // 
+   Price()  // 
+   Price()  // 
+   PropConstruct()  // 
+   PropConstruct()  // 
+   ThickLayers()  // 
+## AutoMesh -- 
+## IAutoMesh -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   SetColor(colorLine, colorFill)  // 
+   AddPoints(pnt)  // 
+   AddFaceElement(type, index, atr)  // 
+   CountPoints()  // 
+   GetPoint(indexModel, pVal)  // 
+   SetPoint(indexModel, pVal)  // 
+   GetPoints(pnt)  // 
+   AddFace(pnt)  // 
+   MultMatr(matr)  // 
+   CalculateNormals(mode)  // 
+   MatId()  // 
+   MatId()  // 
+   GetBox(box)  // 
+   Pickable()  // 
+   Pickable()  // 
+   ID()  // 
+   Invert()  // 
+   thick()  // 
+   thick()  // 
+   SetNormals(vect)  // 
+   SetUVt(uv)  // 
+   AddFaceElement2(type, index, pntUV, vectNorm, atr)  // 
+   SetPoints(pnt)  // 
+   SetFaces(pnt)  // 
+   SetRealDiv(mode, NumU, NumV)  // 
+   AddHoleFace(pnt)  // 
+   AddFaceToColorSurf(IdColorSurf, indFace)  // 
+   AddPolyFace(index, pntUV, vectNorm, IdColor, atr)  // 
+   AddColorSurf(IdColorSurf, colorFill, colorLine)  // 
+   AddColorSurfP(IdColorSurf, IdColorPalette)  // 
+   ReserveFE(newVal)  // 
+   GetColor(colorLine, colorFill)  // 
+   CountFace()  // 
+   GetFaceIndexNodes(indexModel, pInd)  // 
+   GetFaceData(indexModel, pInd, pNormal, pUV)  // 
+   LayerID()  // 
+   LayerID()  // 
+   GetFaceColor(indexModel, colorLine, colorFill)  // 
+   AddFaceTrian(pntOut, index, pntIn)  // 
+## AutoObjDim -- 
+## IAutoObjDim -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   SetPoints(Points)  // 
+   SetDimParam(type, dir, name, Points)  // 
+   SetColor(colorLine, colorText)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   GetSpDim()  // 
+   SetMnParam(arrayParam, mode)  // 
+   ID()  // 
+   GetParentStorey()  // 
+   LayerID()  // 
+   LayerID()  // 
+   GetAdrModel()  // 
+   TestDuplicat(pMod, mode)  // 
+## AutoPolygon -- 
+## IAutoPolygon -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   AngleHatching()  // 
+   AngleHatching()  // 
+   Spacing()  // 
+   Spacing()  // 
+   FillBckg()  // 
+   FillBckg()  // 
+   SetColor(colorLine, colorFill)  // 
+   Pickable()  // 
+   Pickable()  // 
+   GetContour()  // 
+   ColorFillID()  // 
+   ColorFillID()  // 
+   typeLine()  // 
+   typeLine()  // 
+   WidthLine()  // 
+   WidthLine()  // 
+   TypeOutLine()  // 
+   TypeOutLine()  // 
+   WidthOutLine()  // 
+   WidthOutLine()  // 
+   Hatching()  // 
+   Hatching()  // 
+   OutLine()  // 
+   OutLine()  // 
+   colorLine()  // 
+   colorLine()  // 
+   ColorOutLine()  // 
+   ColorOutLine()  // 
+   colorFill()  // 
+   colorFill()  // 
+   ID()  // 
+   MakeModel3D(par)  // 
+   GetModel3D()  // 
+   MultMatrix(pVal)  // 
+   GetMatrix()  // 
+   SetMatrix(pVal)  // 
+   GetParamMatrix(pVal)  // 
+   LayerID()  // 
+   LayerID()  // 
+   CrossHatch()  // 
+   CrossHatch()  // 
+   Line_2_3()  // 
+   Line_2_3()  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+## AutoObjText -- 
+## IAutoObjText -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   SetColor(colorLine, colorText)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   GetSpText()  // 
+   SetPosition(pos_x, pos_y, pos_z)  // 
+   SetMnParam(arrayParam, mode)  // 
+   ID()  // 
+   GetParentStorey()  // 
+   LayerID()  // 
+   LayerID()  // 
+## AutoObjPolygon -- 
+## IAutoObjPolygon -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   SetColor(colorLine, colorText)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   GetSpPolygon()  // 
+   SetPosition(pos_x, pos_y, pos_z)  // 
+   GetContour()  // 
+   SetMnParam(arrayParam, mode)  // 
+   ID()  // 
+   GetParentStorey()  // 
+   GetAdrModel()  // 
+   MultMatrix(pVal)  // 
+   LayerID()  // 
+   LayerID()  // 
+## AutoObjBlock -- 
+## IAutoObjBlock -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   CountModel()  // 
+   GetModelByIndex(indexModel)  // 
+   GetModelByID(idModel)  // 
+   DelModelByID(idModel)  // 
+   DelModelByIndex(indexModel)  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   NewModel(TypeModel)  // 
+   MultMatrix(pVal)  // 
+   ID()  // 
+   GetParentStorey()  // 
+   GetModelByIndex2(indexModel)  // 
+   NewModel2(TypeModel)  // 
+   RemoveAll()  // 
+   SetValidModel(Param, mode)  // 
+   GetMatrix(create)  // 
+   SetMatrix(pVal, create)  // 
+   Copy(pVal)  // 
+   BlockedRegen()  // 
+   BlockedRegen()  // 
+   CleanBaseModel(mode)  // 
+   GetArraySourceModel()  // 
+   GetBox(minmax)  // 
+   GetAdrModel()  // 
+   GetExtDataStrByTruss(type)  // 
+   AddParameter(NameParam, newVal, type, mode)  // 
+   AddObj(IdObj)  // 
+## AutoFactory -- 
+## IAutoFactory -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   NewModel3D(TypeModel)  // 
+   NewModel(TypeModel)  // 
+   NewModel2(TypeModel)  // 
+## AutoSapfirView -- 
+## IAutoSapfirView -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   GetDraftSheet()  // 
+   GetDocument()  // 
+   TypeView()  // 
+   GetVisionNode()  // 
+   InvalidateVision(TypeModel)  // 
+   GetModelVision()  // 
+   SetCameraParam(Param)  // 
+   GetCameraParam(Param)  // 
+   ExportImage(sFilePath, iWidth, iHeight, Param)  // 
+   GetMatrix()  // 
+   SetLCS(Param)  // 
+   GetLCS(Param)  // 
+   SetLocator(Param, local)  // 
+   GetLocator(Param, local)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   SetAllFilterSelect(__MIDL__IAutoSapfirView0000)  // 
+   SetFilterSelect(bufFilter, __MIDL__IAutoSapfirView0001)  // 
+   GetFilterSelect(bufFilter)  // 
+## AutoFileDialog -- 
+## IAutoFileDialog -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   DialogTitle()  // 
+   DialogTitle()  // 
+   InitDir()  // 
+   InitDir()  // 
+   Filter()  // 
+   Filter()  // 
+   FilterIndex()  // 
+   FilterIndex()  // 
+   Flags()  // 
+   Flags()  // 
+   MaxFile()  // 
+   MaxFile()  // 
+   ModeOpen()  // 
+   ModeOpen()  // 
+   DefExt()  // 
+   DefExt()  // 
+   GetFileName()  // 
+   GetPathName()  // 
+   DoModal()  // 
+   GetFileNames()  // 
+   SetFileName(pVal)  // 
+## AutoSolver -- 
+## IAutoSolver -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   CrossSegSeg(Line1, Line2, CrossParam)  // 
+   CutContour(PolyLine, Points)  // 
+   TrimLineByCont(PolyLine, Line)  // 
+   CutContourPl(PolyLine1, PolyLine2, mode)  // 
+   GetConvexContour(PolyLine, dist)  // 
+   ClipModelByPlane(Model, Plane, mode)  // 
+   CrossPolyLines(PLine1, PLine2, CrossParam)  // 
+   ClipModelByContour(Model, Line, mode)  // 
+   GetLocalMatrByLine(PLine1, PLine2)  // 
+   RoundLine(PLine, R, mode, index)  // 
+   GetGabContour(Model)  // 
+   BoolOperModel(Model1, Model2, oper)  // 
+   TestIntersection(Model1, Model2)  // 
+## AutoAxes -- 
+## IAutoAxes -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   ID()  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   Select()  // 
+   Select()  // 
+   MultMatrix(pVal)  // 
+   GetNodePoints(bufPnt)  // 
+   LayerID()  // 
+   LayerID()  // 
+   SetParamIntervals(type, Arr1, Arr2)  // 
+   GetParamIntervals(Arr1, Arr2)  // 
+## AutoZone -- 
+## IAutoZone -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   GetContour()  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   MultMatrix(pVal)  // 
+   Select()  // 
+   Select()  // 
+   Symmetry(par)  // 
+   SetMarkPoint(x, y, z)  // 
+   SetNamePoint(x, y, z)  // 
+   GetParentStorey()  // 
+   ID()  // 
+   LayerID()  // 
+   LayerID()  // 
+   GetAdrModel()  // 
+## AutoKmSection -- 
+## IAutoKmSection -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   SectionData()  // 
+   SectionData()  // 
+   SetSectionContInVectContour(SecCont)  // 
+   DoModal()  // 
+   SectionType()  // 
+   SectionTypeStr()  // 
+   SectionName()  // 
+   SectionMaterialName()  // 
+   CountComponent()  // 
+   ComponentClassification(index)  // 
+   ComponentName(index)  // 
+   GetComponentData(index, pVal)  // 
+   ComponentMatName(index)  // 
+   GetComponentMatData(index, pVal)  // 
+   GetComment()  // 
+   IsSectionDataValid(SectionData)  // 
+   SetSectionData(newVal)  // 
+## AutoMultiContour -- 
+## IAutoMultiContour -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   RemoveMnParam(mode, Param)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   CleanBaseModel(mode)  // 
+   GetContour()  // 
+   GetApplication()  // 
+   GetBaseModel()  // 
+   GetKmSection()  // 
+   GetAdrModel()  // 
+   AddToLibPrj()  // 
+   Copy(pVal)  // 
+   MakeModel()  // 
+   FindStandartSection(Param)  // 
+   InitDefault(Param)  // 
+   GetContour2()  // 
+   SetStandartSection(Param, arrParam)  // 
+   AddParamContTapered(arrParam)  // 
+   GetSquare()  // 
+   SetKmSection(NameSec, KmParam)  // 
+## AutoSetMaterials -- 
+## IAutoSetMaterials -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   NewMaterial()  // 
+   NewMultiMat()  // 
+   CountMaterials()  // 
+   GetMaterialByIndex(index)  // 
+   GetMaterialByID(ID)  // 
+   GetMaterialByGUID(GUID)  // 
+   GetIdMatByGUID(GUID)  // 
+   GetMaterialByName(name)  // 
+## AutoSetLayers -- 
+## IAutoSetLayers -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   NewLayer()  // 
+   CountLayers()  // 
+   GetLayerByIndex(index)  // 
+   CountCombi()  // 
+   NameCombi(index)  // 
+   GetCombiIndByName(name)  // 
+   GetLayerById(index)  // 
+   GetLayerByName(name)  // 
+## AutoLayer -- 
+## IAutoLayer -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   name()  // 
+   name()  // 
+   Ext()  // 
+   Ext()  // 
+   Invisible(index)  // 
+   Invisible(index)  // 
+   Locked(index)  // 
+   Locked(index)  // 
+   CombiCount()  // 
+   ID()  // 
+   Users()  // 
+   Users()  // 
+   Imported()  // 
+   Imported()  // 
+   NumObj()  // 
+   Color()  // 
+   Color()  // 
+## AutoLayerMat -- 
+## IAutoLayerMat -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   Thickness()  // 
+   Thickness()  // 
+   GetMaterial()  // 
+   SetMaterialID(MatId)  // 
+   SetMaterialGUID(sText)  // 
+## AutoNode -- 
+## IAutoNode -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   CountModel()  // 
+   GetModelByIndex(indexModel)  // 
+   GetModelByID(idModel)  // 
+   GetModelByIndex2(indexModel)  // 
+   DelModelByID(idModel)  // 
+   DelModelByIndex(indexModel)  // 
+   RemoveAll()  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   NewModel(TypeModel)  // 
+   ID()  // 
+   AddLinkModel(idModel)  // 
+   CountLinkModel()  // 
+   GetLinkModelByIndex(indexModel)  // 
+   DelLinkModelByIndex(indexModel)  // 
+   NewModel2(TypeModel)  // 
+   SetClipBox(value)  // 
+   CreateVision(name)  // 
+## AutoColorDlg -- 
+## IAutoColorDlg -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   DoModal()  // 
+   rgba()  // 
+   rgba()  // 
+   SetExtHWND(newVal)  // 
+## AutoAssistant -- 
+## IAutoAssistant -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   MakePressContourSelectColumn()  // 
+   MakePressContourColumn(DispColumn, par, mode)  // 
+   UnionSelectLines()  // 
+   RoundSelObj(ValR)  // 
+   RoundSelObjPar(ValR)  // 
+   RunCommand(id_command)  // 
+   SetAnyData(par, data)  // 
+   GetAnyData(par, data)  // 
+   AlignModel(ValR)  // 
+   AddPeremichkaToHole(val)  // 
+   AddFndBeamToWall(val)  // 
+   WallZonaTriang(val)  // 
+   FilterStoreyIDs(ValR)  // 
+   ShowUnalignedElements(storeyIDs, delta, axisX, axisY)  // 
+   AlignChordElements(delta, Model, axisX, axisY)  // 
+## AutoCapital -- 
+## IAutoCapital -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   ID()  // 
+   GetModel3D()  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+   RemoveMnParam(mode, Param)  // 
+   SetSteps(arrayParam)  // 
+   GetSteps(arrayParam)  // 
+   GetActiveDoc()  // 
+## AutoArray -- 
+## IAutoArray -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   Length()  // 
+   GetData(index)  // 
+## AutoStandart -- 
+## IAutoStandart -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+## AutoMontag -- 
+## IAutoMontag -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   GenerateEvents()  // 
+   Clear()  // 
+   CountEvents()  // 
+   GetEventByIndex(index)  // 
+   SetEventByIndex(index, newVal)  // 
+   AddEvent(newVal)  // 
+   InsertEvent(index, newVal)  // 
+   DelEventByIndex(index)  // 
+   GetEventById(ID)  // 
+   SetEventById(ID, newVal)  // 
+   DelEventById(ID)  // 
+   CurEventId()  // 
+   CurEventId()  // 
+   AddSelObjToEvent(newVal)  // 
+   ViewMode()  // 
+   ViewMode()  // 
+   GenMode()  // 
+   GenMode()  // 
+   Move(idSrs, idTrg)  // 
+   SelectObj(idEv, Update)  // 
+   GetListObj(idEv)  // 
+   UnionEvents(IdArray)  // 
+   DelEventsById(IdArray)  // 
+   ExtractSelObjFromEvent()  // 
+   CompactStd()  // 
+   CompactStd()  // 
+   IsEventCurSt(idEv)  // 
+   GetIdCurSt(idEv)  // 
+   SelectEvent(ID)  // 
+   SelectEvent(ID)  // 
+   ClearSelect()  // 
+   SortType()  // 
+   SortType()  // 
+   SortName()  // 
+   ColorEv()  // 
+   ColorEv()  // 
+   EnableType()  // 
+   EnableType()  // 
+   GetLoadCaseHolder()  // 
+## AutoPoint3D -- AutoPoint3D Class
+## IAutoPoint3D -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   ID()  // 
+   SetPosition(pos_x, pos_y, pos_z)  // 
+   GetPosition(point)  // 
+   Color()  // 
+   Color()  // 
+   PntSize()  // 
+   PntSize()  // 
+   LayerID()  // 
+   LayerID()  // 
+## AutoHtmlDlg -- AutoHtmlDlg Class
+## IAutoHtmlDlg -- Интерфейс IAutoHtmlDlg
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   dialogArguments()  // 
+   dialogArguments()  // 
+   dialogParameters()  // 
+   dialogParameters()  // 
+   Title()  // 
+   Title()  // 
+   Close()  // 
+   GetActiveDoc()  // 
+   dialogWidth()  // 
+   dialogWidth()  // 
+   dialogHeight()  // 
+   dialogHeight()  // 
+   dialogLeft()  // 
+   dialogLeft()  // 
+   dialogTop()  // 
+   dialogTop()  // 
+   SetWinPos(left, top)  // 
+   SetWinSize(Width, Height)  // 
+   GetWinRect()  // 
+   SetWinRect(val)  // 
+   GetHWND()  // 
+   SetAllFilterSelect(__MIDL__IAutoHtmlDlg0000)  // 
+   SetFilterSelect(bufFilter, __MIDL__IAutoHtmlDlg0001)  // 
+   GetFilterSelect(bufFilter)  // 
+   TypeExternalObj()  // 
+   GetApplication()  // 
+## AutoMaterialDlg -- AutoMaterialDlg Class
+## IAutoMaterialDlg -- Интерфейс IAutoMaterialDlg
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   SetMode(val)  // 
+   DoModal()  // 
+   SetMaterial(val)  // 
+   GetMaterial()  // 
+   EnableSaveBtn(val)  // 
+   SetExtHWND(newVal)  // 
+## AutoModelFeaBase -- 
+## IAutoModelFeaBase -- Интерфейс IAutoModelFeaBase
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   ID()  // 
+   ID()  // 
+   MaterialID()  // 
+   MaterialID()  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   Thickness()  // 
+   Thickness()  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   GetContour()  // 
+   GetMultiContour()  // 
+   SetMultiContour(pVal)  // 
+   GetMatrix()  // 
+   SetMatrix(pVal)  // 
+   MultMatrix(pVal)  // 
+   SetValidModel(Param, mode)  // 
+   GetValidModel(Param)  // 
+   AddAdtLines(pMod, Param)  // 
+   AddAdtPoints(bufPnt, Param)  // 
+   GetModel3DChildCount()  // 
+   GetModel3DChild(index)  // 
+   SetContour(pVal)  // 
+   GetModel3D()  // 
+   ImproveMesh()  // 
+   UpdateModelLoad()  // 
+   GetAdrModel()  // 
+   Udata()  // 
+   Udata()  // 
+## AutoModelHolder -- 
+## IAutoModelHolder -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   CountModel()  // 
+   NewModel(TypeModel)  // 
+   GetModelByIndex(indexModel)  // 
+   GetModelByID(idModel)  // 
+   DelModelByID(idModel)  // 
+   DelModelByIndex(indexModel)  // 
+   RemoveAll()  // 
+   MultMatrix(pVal)  // 
+   GetModelByIndex2(indexModel)  // 
+   GetModelByID2(idModel)  // 
+   GetModelByUdata(UdataModel, TypeModel)  // 
+   GetModelByUdataLoadType(UdataModel, LoadCaseType)  // 
+   GetAdrModel()  // 
+## AutoVariant -- 
+## IAutoVariant -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   GetAdrVariant()  // 
+   GetData()  // 
+   SetData(pVal)  // 
+   DoModal()  // 
+## AutoFeaData -- 
+## IAutoFeaData -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   SetMnParam(arrayParam, mode)  // 
+   GetMnParam(arrayParam, mode)  // 
+   ClearMnParam(mode)  // 
+## AutoDlgImportDxf -- 
+## IAutoDlgImportDxf -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   GetActiveDoc()  // 
+   SetDialogModel(pVal)  // 
+   GetDialogModel()  // 
+   GetModelByType(TypeModel)  // 
+   GetMnParamType(arrayParam, TypeModel, mode)  // 
+   ViewParamDialogModel(arrayLayer)  // 
+   ViewParamDialogStorey(idStor)  // 
+   AddModByNameLayer(TypeModel, nameLayer)  // 
+   GetModByNameLayer(nameLayer)  // 
+   CleanParams()  // 
+   SaveModelParams(NameFile)  // 
+   LoadModelParams(NameFile)  // 
+   DelModByNameLayer(nameLayer)  // 
+   GetHWND()  // 
+   GetStoreyByName(nameStor)  // 
+   MakeStoreyByUnderlay(cntFile)  // 
+   SelectModelByIDLayer(idStor, idLayer, mode)  // 
+   ViewParamDialogModelByStorey(arrayLayer)  // 
+   AddModStoreyByNameLayer(TypeModel, nameLayer, nameStor)  // 
+   GetModStoreyByNameLayer(nameLayer, nameStor)  // 
+   DelModStoreyByNameLayer(nameLayer, nameStor)  // 
+   SetInvisibleLayers(arrayLayer, newVal, index)  // 
+   FlgOpenDlg()  // 
+   FlgOpenDlg()  // 
+   MakeArmZoneSlab(pMod, pPoly, nameLayer, nameStor)  // 
+   MakeArmZoneSlabByArrayPoly(pMod, pVectCont, arrayNameLayer, nameStor)  // 
+## AutoEngine -- 
+## IAutoEngine -- Объект 'Нод'
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // Получить идентификатор типа объекта 'Нод'
+   ID()  // Получить уникальный идентификатор экземпляра нода
+   ID()  // Получить уникальный идентификатор экземпляра нода
+   Parameter(name)  // Получить значение заданного параметра нода
+   Parameter(name)  // Получить значение заданного параметра нода
+   ClearInData()  // Delete all input data of a node
+   AddInData(InID, OutID, Param)  // Добавить объекты на заданный вход нода
+   SetSampleObj(pVal)  // Установить образцовый объект нода
+   GetSampleObj()  // Получить образцовый объект нода
+   RegenModel()  // Инициировать регенерацию нода
+   DelInData(InID, Param)  // Удалить связь со входа IDio с объектами, заданнами своими ID и ID выходов
+   GetTypeOutData(Param)  // Получить список параметров выходов нода
+   GetTypeInData(Param)  // Получить список параметров входов нода
+   TestTypeData(pObj, InID, OutID, in_block)  // Проверить возможность подсоединения входа InID объекта this с выходом IdOut объекта pObj
+   GetAdrModel()  // Получить фактический адрес нода
+   GetInData(InID, Param)  // Получить список ID объектов, подсоединенных к заданному входу нода
+   GetInModel(InID)  // Получить контейнер 3D-моделей входа InID
+   DelOutModel()  // Удалить все выходные объекты
+   GetOutData(OutID, Param)  // Получить список ID объектов, подсоединенных к заданному выходу нода
+   GetCanvaPos(pos)  // Получить позицию нода на канве
+   SetCanvaPos(pos_x, pos_y)  // Установить позицию нода на канве
+   NameInParam(indParam)  // Получить имя заданного входа
+   NameInParam(indParam)  // Получить имя заданного входа
+   NameOutParam(indParam)  // Получить имя заданного выхода
+   NameOutParam(indParam)  // Получить имя заданного выхода
+   FullTypeModel()  // Получить полный идентификатор экземпляра типа объекта 'Нод'
+   GetModelHolder()  // Получить указатель на контейнер объектов нода 'Блок'
+   ActualizeBlock()  // Актуализировать параметры нода 'Блок'
+   SetMnParam(arrayParam, mode)  // Устновить массив параметров нода
+   GetMnParam(arrayParam, mode)  // Получить массив параметров нода
+   IsInData(InID)  // Проверить наличие данных на заданном входе
+   TypeEngine()  // Получить прикладной тип нода
+   GetOutModel(OutID)  // Получить контейнер 3D-моделей выхода OutID
+   AddInput(Param)  // Добавить новый вход нода с заданный набором параметров
+   AddOutput(Param)  // Добавить новый выход нода с заданный набором параметров
+   SetUsersType(GUID)  // Установить прикладной Guid пользовательского нода
+   GetIntegerIn(InID)  // Получить значение integer c входа InID
+   SetIntegerOut(OutID, Param)  // Установить значение integer на выход OutID
+   GetDoubleIn(InID)  // Получить значение double c входа InID
+   SetDoubleOut(OutID, Param)  // Установить значение double на выход OutID
+   GetBoolIn(InID)  // Получить значение bool c входа InID
+   SetBoolOut(OutID, Param)  // Установить значение bool на выход OutID
+   GetStringIn(InID)  // Получить значение string c входа InID
+   SetStringOut(OutID, Param)  // Установить значение string на выход OutID
+   GetArrayIntegerIn(InID, Param)  // Получить массив значений integer c входа InID
+   SetArrayIntegerOut(OutID, Param)  // Установить массив значений integer на выход OutID
+   GetArrayDoubleIn(InID, Param)  // Получить массив значений double c входа InID
+   SetArrayDoubleOut(OutID, Param)  // Установить массив значений double на выход OutID
+   GetArrayBoolIn(InID, Param)  // Получить массив значений bool c входа InID
+   SetArrayBoolOut(OutID, Param)  // Установить массив значений bool на выход OutID
+   GetArrayStringIn(InID, Param)  // Получить массив значений string c входа InID
+   SetArrayStringOut(OutID, Param)  // Установить массив значений string на выход OutID
+   GetModelDataIn(InID)  // Получить массив всех точек/линий/поверхностей/плоскостей.... на входе InID (автоматом отпределяется по типу входа)
+   DelInput(InID)  // Удалить вход нода с заданным InID
+   DelOutput(OutID)  // Удалить выход нода с заданным OutID
+   DelAllInput()  // Удалить все входы нода
+   DelAllOutput()  // Удалить все выходы нода
+   AddModel(libMod)  // 
+   CopyEngine(InID, OutID)  // 
+   AddInLocalData(InID, Param)  // 
+   GetArrayIntegerOut(OutID, Param)  // 
+   GetArrayDoubleOut(OutID, Param)  // 
+   GetArrayBoolOut(OutID, Param)  // 
+   GetArrayStringOut(OutID, Param)  // 
+   GetOutObj(OutID, Param, idStorey)  // 
+   GetArrayNumberIn(InID, Param)  // 
+   GetNumberIn(InID)  // 
+   GetCountInput()  // 
+   GetCountOutput()  // 
+   GetTypeInput(ind)  // 
+   GetTypeOutput(ind)  // 
+   SetArrayIntegerIn(InID, Param)  // 
+   SetArrayDoubleIn(InID, Param)  // 
+   SetArrayStringIn(InID, Param)  // 
+   SetUserNodePtr(adr)  // 
+   SelectOutModel(bSelect, OutID)  // 
+   VisibleOutModel(bVisible, OutID)  // 
+   GetInVectors(InID, vec)  // 
+   SetOutVectors(OutID, vec)  // 
+   GetInPoints(InID, pnt)  // 
+   SetOutPoints(OutID, pnt)  // 
+   BakeOutModel(IdNew)  // 
+   MnemoInParam(InID)  // 
+   MnemoInParam(InID)  // 
+   MnemoOutParam(OutID)  // 
+   MnemoOutParam(OutID)  // 
+   GetActiveDoc()  // 
+   IsRemoved()  // 
+   ExtLocked()  // 
+   ExtLocked()  // 
+   GetProject()  // 
+   GetStatusEngine()  // 
+   GetUsersTypeInData(Param)  // 
+   SetUsersTypeInData(Param)  // 
+   IsUsersTypeInData()  // 
+   GetInMaxID()  // 
+   IsOutData(OutID)  // 
+   GetOutEngine(OutID, Param)  // 
+   GetInEngine(OutID, Param)  // 
+   GetMultiContour()  // 
+   GetParameterGroup(name, arrayParam, mode)  // 
+   GetArrayObjectIn(InID, Param)  // 
+   SaveDisplayData(OutID, mode)  // 
+   SetIntegerIn(InID, Param)  // 
+   GetIntegerOut(OutID)  // 
+   SetDoubleIn(InID, Param)  // 
+   GetDoubleOut(OutID)  // 
+   SetBoolIn(InID, Param)  // 
+   GetBoolOut(OutID)  // 
+   SetStringIn(InID, Param)  // 
+   GetStringOut(OutID)  // 
+   GetDocument()  // 
+   GetTempProject()  // 
+   OperWithAllEngineInBlock(mode)  // 
+   EditPythonNode()  // 
+   InvalidateNodePanel(mode)  // 
+   RemoveMnParam(mode, Param)  // 
+   SavePythonNode(path)  // 
+   InsertInput(ind, Param)  // 
+   GetIndInputByID(InID)  // 
+   GetIdInputByInd(ind)  // 
+   InsertOutput(ind, Param)  // 
+   GetIndOutputByID(OutID)  // 
+   GetIdOutputByInd(ind)  // 
+   SetInputSequence(Param)  // 
+   SetOutputSequence(Param)  // 
+   SetStatusEngine(newVal)  // 
+   UpdateIconNodePanel()  // 
+   InitPythonFile(strPath)  // 
+   SetInput(InID, Param)  // 
+   SetOutput(OutID, Param)  // 
+   BeginCreateModel()  // 
+   EndCreateModel()  // 
+   AddOutModel(OutID, TypeModel, pStorey)  // 
+   UpdateOwnNode()  // 
+   GetArrayPolylineIn(InID)  // 
+   GetArrayObjectOut(OutID, ArrDispatch)  // 
+   SetArrayObjectOut(OutID, ArrDispatch)  // 
+   SetArrayIdObjectOut(OutID, arrID)  // 
+   ClearOutObject(OutID)  // 
+   UpdateNodePanel(groupMnemo)  // 
+   ClearInArrayData()  // 
+   ClearInLinkData()  // 
+   ClearInModelData()  // 
+   ClearInData2(type)  // 
+   ClearOutArrayData()  // 
+   ClearOutModelData()  // 
+## AutoArrayPoint3D -- 
+## IAutoArrayPoint3D -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   ID()  // 
+   SetPoints(bufPnt)  // 
+   AddPoints(bufPnt)  // 
+   CountPoints()  // 
+   GetPoints(bufPnt)  // 
+   RemoveAll()  // 
+   Color()  // 
+   Color()  // 
+   PntSize()  // 
+   PntSize()  // 
+   LayerID()  // 
+   LayerID()  // 
+## AutoColor -- 
+## IAutoColor -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   ID()  // 
+   SetDiffuse(R, G, B, A)  // 
+   SetAmbient(R, G, B)  // 
+   SetMapDiffuse(name)  // 
+   SetMapAmbient(name)  // 
+   SetSpecular(R, G, B)  // 
+## AutoColorPalette -- 
+## IAutoColorPalette -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   AddColorName(name)  // 
+   GetColorByID(ID)  // 
+   GetColorByName(name)  // 
+## AutoModelLoad -- 
+## IAutoModelLoad -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+## AutoLoadCase -- 
+## IAutoLoadCase -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   ID()  // 
+   ID()  // 
+   name()  // 
+   name()  // 
+   AutoMontag()  // 
+   AutoMontag()  // 
+   GetSafParam(Param)  // 
+   Parameter(name)  // 
+   Parameter(name)  // 
+   SetParameters(arrayParam)  // 
+   GetParameters(arrayParam)  // 
+## AutoLoadCaseHolder -- 
+## IAutoLoadCaseHolder -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   CountLoadCase()  // 
+   GetLoadCaseByIndex(index)  // 
+   GetLoadCaseByID(ID)  // 
+   GetLoadCaseByName(name)  // 
+   CreateLoadCase(ID)  // 
+   AddLoadCase(name)  // 
+   DelLoadCaseByID(ID)  // 
+   DelLoadCaseByName(name)  // 
+## AutoArrayParam -- 
+## IAutoArrayParam -- 
+   QueryInterface(riid, ppvObj)  // 
+   AddRef()  // 
+   Release()  // 
+   GetTypeInfoCount(pctinfo)  // 
+   GetTypeInfo(itinfo, lcid, pptinfo)  // 
+   GetIDsOfNames(riid, rgszNames, cNames, lcid, rgdispid)  // 
+   Invoke(dispidMember, riid, lcid, wFlags, pdispparams, pvarResult, pexcepinfo, puArgErr)  // 
+   TypeModel()  // 
+   GetNVAPtr()  // 

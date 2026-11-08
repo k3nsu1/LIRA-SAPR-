@@ -1,0 +1,424 @@
+LIB ('LiraSapr', 'LIRA-FEM 2024', 0, None)
+
+## coclass LiraApplication  -- LIRA-FEM Application
+
+## dispatch ILiraApplication  -- LIRA-FEM application
+   OpenDocument(BSTR PathName, BOOL RestoreEnv, BOOL Silent, BSTR* pMsgs) -> ILiraDocument*   // Opens document of path PathName. If RestoreEnv parameter is not 0, also restores from *.LIR-file additional initial data files. If Silent parameter is not 0, overwrites them silently. Errors and warnings are returned with parameters pMsgs
+   CreateNewDocument(BSTR Title, LiraModelTypeEnum SystemLabel, BSTR Description, LiraLoadsValsTypeEnum LoadVals) -> ILiraDocument*   // Create a new document of specified Title, SystemLabel and Description. Please refer the corresponding properties of LiraDocument object for limitations on the parameters
+   get DocumentCount() -> I4   // Number of opened documents
+   get Document(I4 Index) -> ILiraDocument*   // Document of specified Index
+   get ActiveDocument() -> ILiraDocument*   // Active document of null if no documents are opened
+   StartCmd(LiraCmdIdEnum Cmd) -> VOID   // Starts a command with identifier Cmd
+   get MeasurementUnits() -> ILiraMeasurementUnits*   // Units of measurement all tables use
+   StartAnalysis(BSTR PathName) -> BOOL   // Starts analysis of a problem in file PathName. Does not wait until the end of the analysis, returns immediately after the analysis is started. Returns nonzero  if succeeded. Errors will appear in PackageAnalysisLog.TXT file in LIRA-FEM work directory
+   StopAnalysis() -> VOID   // Tries to stop analysis
+   StartUnzip(BSTR ZipPathName) -> VOID   // Start unzipping a LIRA-FEM archive. ZipPathName is a path to it. Does not wait until archive is completely unzipped, returns immediately
+   StartZip(BSTR PathName, BSTR ZipPathName, LiraZipEnum ZipMode) -> VOID   // Start creating a LIRA-FEM archive. Parameters: PathName -- path to LIRA-FEM document to zip. ZipPathName -- path to the newly created zip file. ZipMode -- what data are to zip. Does not wait until archive is completely created, returns immediately
+   DeleteResults(BSTR PathName) -> VOID   // Deletes all analysis results for the LIRA-FEM document of path PathName
+   ImportFile(BSTR Path, BSTR LirFileTemplate) -> ILiraDocument*   // Imports file Path. LirFileTemplate specifies a template finite element model which can not contain nodes, element or stiffnesses
+   StartAnalysisOnServer(BSTR PathName, BSTR* ErrorMsg) -> BOOL   // Starts analysis of a problem in file PathName on current analysis server. Does not wait until the end of the analysis, returns immediately after the problem is queued. Returns nonzero if succeeded
+   UnLock() -> VOID   // Allows lirasapr.exe to unload if references to all its objects are freed. If this method was not called, lirasapr.exe runs even after references to all its objects are freed. Opened documents are not saved
+
+## dispatch ILiraDocument  -- LIRA-FEM document containing a finite element model (FE model) of a building for strength analysis
+   get Application() -> ILiraApplication*   // LIRA-FEM application object
+   get Title() -> BSTR   // Name of this document. Can not have symbols ,.<>()#?*|\/: and length over 30 symbols
+   put Title(BSTR p0) -> VOID   // Name of this document. Can not have symbols ,.<>()#?*|\/: and length over 30 symbols
+   get SystemLabel() -> LiraModelTypeEnum   // System label of the finite element model contained in this document
+   put SystemLabel(LiraModelTypeEnum p0) -> VOID   // System label of the finite element model contained in this document
+   get Description() -> BSTR   // Description of this document. Can not have length over 255 symbols
+   put Description(BSTR p0) -> VOID   // Description of this document. Can not have length over 255 symbols
+   get LoadsValsType() -> LiraLoadsValsTypeEnum   // Load values type of this document
+   put LoadsValsType(LiraLoadsValsTypeEnum p0) -> VOID   // Load values type of this document
+   Activate() -> VOID   // Makes this document active
+   IsModified() -> BOOL   // Returns true if this document was modified and false otherwise
+   Save(BOOL SaveEnv) -> VOID   // Saves this document. SaveEnv parameter allows to save copies of additional initial data files this document refers. The copies are saved inside this document on disc. The document must be active. User interface messages can be shown
+   SaveAs(BSTR PathName, BOOL SaveEnv) -> VOID   // Saves this document with specified PathName. SaveEnv parameter allows to save copies of additional initial data files this document refers. The copies are saved inside this document on disc. The document must be active. Messages from UI can be shown
+   get PathName() -> BSTR   // Path and name of the document file
+   Close() -> VOID   // Closes this document
+   Select(VARIANT Numbers, LiraSelEnum Subj) -> BSTR   // Selects objects of type Subj with specified Numbers in the model. Numbers can be an array of VARIANTs, INTs or a string like 1 3 5-8. To select all objects of the type, specify Numbers as string 'all'. If some numbers do no exist or are hidden, returns them as
+   Unselect(VARIANT Numbers, LiraSelEnum Subj) -> BSTR   // Unselects objects of type Subj with specified Numbers in the model. Numbers can be an array of VARIANTs, INTs or a string like 1 3 5-8. To unselect all objects of the type, specify Numbers as string 'all'. If some numbers do no exist or are hidden, returns the
+   GetSelection(VARIANT* pNumbers, LiraSelEnum Subj) -> VOID   // Returns currently selected objects of type Subj. The supported return types are array of VARIANTs, array of INTs or string like 1 3 5-8. The desired return type may be specified in pNumbers parameter before call of this function
+   get AllTables() -> ILiraTables*   // All input tables of this document
+   SetGenerateCsvTables(BOOL NewVal, VARIANT CsvTableArray) -> VOID   // Sets if to generate CSV-tables of results during analysis of this document. You can choose the CSV-tables to generate providing CsvTableArray parameter as an array of LiraCsvTableEnum enumeration members. To start analysis, call StartAnalysis method of LiraApp
+   GetGenerateCsvTables(VARIANT* pCsvTableArray) -> BOOL   // Returns if to generate CSV-tables of results during analysis of this document. You can provide the pCsvTableArray parameter to retrieve an array of the generated CSV-tables as members of LiraCsvTableEnum enumerator. To start analysis, call StartAnalysis method
+   get CurrentLoadCase() -> I4   // Sets or returns a 1-based number of the current load case of initial data (or assembly stage if applies)
+   put CurrentLoadCase(I4 p0) -> VOID   // Sets or returns a 1-based number of the current load case of initial data (or assembly stage if applies)
+   SetDeadWeightLoad(I4 Flags, R4 Yf) -> BSTR   // Adds or deletes self weight loads on finite elements whose cross sections have non-zero material density. Flags parameter specifies the requred action and its options. Flags parameter is a combination of LiraDeadWeightLoadEnum bits. Yf parameter is the safety 
+   SetSoilModel(BSTR SldFilePath, I2 Group, VARIANT Pos, LiraSoilMethodEnum Method, LiraSoilMethod6DirEnum Method6Dir, LiraSoilC2Enum C2, LiraSoilLPosEnum LPos) -> VOID   // Attaches to this document soil model with full path SldFilePath and passes its options to this document. If this parameter is empty, detaches previously attached soil model. Group parameter is the number of a load group created or updated in the soil model fro
+   GetSoilModel(I2* pGroup, VARIANT* pPos, LiraSoilMethodEnum* pMethod, LiraSoilMethod6DirEnum* pMethod6Dir, LiraSoilC2Enum* pC2, LiraSoilLPosEnum* pLPos) -> BSTR   // Returns the full path SldFilePath of the soil model previously attached to this document. Also returns the other parameters previously specified for the soil model
+
+## enum LiraModelTypeEnum  -- Model type
+   kLiraModelType_1 = 1
+   kLiraModelType_2 = 2
+   kLiraModelType_3 = 3
+   kLiraModelType_4 = 4
+   kLiraModelType_5 = 5
+   kLiraModelType_6 = 6
+   kLiraModelType_15 = 15
+
+## enum LiraLoadsValsTypeEnum  -- Load values type
+   kLiraLoadVaksType_Design = 0
+   kLiraLoadVaksType_Normat = 1
+
+## enum LiraSelEnum  -- Type of objects used for selection. Objects in super-elements can not be selected or unselected
+   kLiraSel_Els = 0
+   kLiraSel_Ns = 1
+
+## dispatch ILiraTables  -- Group of input tables. Can include one ore more LIRA-FEM input tables and/or nested groups of input tables
+   get Document() -> ILiraDocument*   // Document that owns this item of input table group
+   get Name() -> BSTR   // Name of this item
+   put Name(BSTR p0) -> VOID   // Name of this item
+   get Type() -> LiraTableEnum   // Type of this item
+   GetParameters(VARIANT* pVals) -> VOID   // Returns table-specific parameters
+   SetParameters(VARIANT NewVals) -> VOID   // Sets new table-specific parameters
+   CreateNewItem(LiraTableEnum Typ, VARIANT Pars, LiraModelPartEnum ModelPart, BSTR Nam, I4 AtPos) -> ILiraTableGroupItem*   // Creates a new input table of type Typ and name Nam for the part of the model ModelPart and places it in position AtPos. AtPos can be a value from 0 to ItemCount. If AtPos=-1, appends it. See LiraTableEnum for description of Pars
+   InsertCopy(ILiraTableGroupItem* Item, I4 AtPos) -> ILiraTableGroupItem*   // Inserts a copy of Item and places it in position AtPos. AtPos can be a value from 0 to ItemCount. If AtPos=-1, appends it. Item can belong to any of opened documents
+   get ItemCount() -> I4   // Number of contained items
+   get Item(I4 ItemNo) -> ILiraTableGroupItem*   // An item with index ItemNo
+   Delete(I4 ItemNo) -> VOID   // Deletes item at position ItemNo
+   BeginGroupAction() -> VOID   // Starts a series of command on input tables or their groups
+   EndGroupAction(BSTR GroupActionName) -> VOID   // Ends a series of command started with BeginGroupAction() method. GroupActionName gives the name for Undo command
+   CopyTo(ILiraTableGroupItem* pItem, ILiraTables* pDst) -> VOID   // Copies pItem from this document to the other document pDst
+
+## dispatch ILiraTableGroup  -- Group of input tables. Can include one or more LIRA-FEM input tables and/or nested groups of input tables
+   get Document() -> ILiraDocument*   // Document that owns this item of input table group
+   get Name() -> BSTR   // Name of this item
+   put Name(BSTR p0) -> VOID   // Name of this item
+   get Type() -> LiraTableEnum   // Type of this item
+   GetParameters(VARIANT* pVals) -> VOID   // Returns table-specific parameters
+   SetParameters(VARIANT NewVals) -> VOID   // Sets new table-specific parameters
+   CreateNewItem(LiraTableEnum Typ, VARIANT Pars, LiraModelPartEnum ModelPart, BSTR Nam, I4 AtPos) -> ILiraTableGroupItem*   // Creates a new input table of type Typ and name Nam for the part of the model ModelPart and places it in position AtPos. AtPos can be a value from 0 to ItemCount. If AtPos=-1, appends it. See LiraTableEnum for description of Pars
+   InsertCopy(ILiraTableGroupItem* Item, I4 AtPos) -> ILiraTableGroupItem*   // Inserts a copy of Item and places it in position AtPos. AtPos can be a value from 0 to ItemCount. If AtPos=-1, appends it. Item can belong to any of opened documents
+   get ItemCount() -> I4   // Number of contained items
+   get Item(I4 ItemNo) -> ILiraTableGroupItem*   // An item with index ItemNo
+   Delete(I4 ItemNo) -> VOID   // Deletes item at position ItemNo
+
+## dispatch ILiraTableGroupItem  -- An input table or group of input tables
+   get Document() -> ILiraDocument*   // Document that owns this item of input table group
+   get Name() -> BSTR   // Name of this item
+   put Name(BSTR p0) -> VOID   // Name of this item
+   get Type() -> LiraTableEnum   // Type of this item
+   GetParameters(VARIANT* pVals) -> VOID   // Returns table-specific parameters
+   SetParameters(VARIANT NewVals) -> VOID   // Sets new table-specific parameters
+
+## enum LiraTableEnum  -- Types of LIRA-FEM input tables
+   kLiraTable_AllTables = 0
+   kLiraTable_Group = 1
+   kLiraTable_Nodes_Coordinates = 2
+   kLiraTable_Elements_TypeAndNodes = 3
+   kLiraTable_Nodes_Restraints = 4
+   kLiraTable_Plates_C1C2 = 5
+   kLiraTable_Bars_C1C2 = 6
+   kLiraTable_Special_C1C2 = 7
+   kLiraTable_NonlinearDiagrams = 8
+   kLiraTable_Stiffnesses = 9
+   kLiraTable_Elements_Stiffnesses = 10
+   kLiraTable_PRBs = 11
+   kLiraTable_Plates_Offsets = 12
+   kLiraTable_CoupledDOFs = 13
+   kLiraTable_Bars_Offsets = 14
+   kLiraTable_Bars_Hinges = 15
+   kLiraTable_Nodes_LocalAxes = 16
+   kLiraTable_Bars_LocalAxes = 17
+   kLiraTable_Plates_LocalAxes = 18
+   kLiraTable_Plates_AxesOfOrthotropy = 19
+   kLiraTable_Solids_LocalAxes = 20
+   kLiraTable_Solids_AxesOfOrthotropy = 21
+   kLiraTable_Elements_DesignSectionsCount = 22
+   kLiraTable_AssemblageStages = 23
+   kLiraTable_DCL = 24
+   kLiraTable_LoadCases = 25
+   kLiraTable_Bars_InternalForces = 26
+   kLiraTable_CollectionOfMasses = 27
+   kLiraTable_Stiffnesses_Factors = 28
+   kLiraTable_ConstructionAxes = 29
+   kLiraTable_ElevationMarks = 30
+   kLiraTable_StructuralBlocks = 31
+   kLiraTable_Elements_Materials = 32
+   kLiraTable_Cnt = 33
+
+## enum LiraModelPartEnum  -- Part of the finite element model for which an input table is created. Used as the 3rd parameter in function CreateNewItem() of a table group object. It's value defines the contents of the 2nd parameter
+   kLiraModelPart_All = 0
+   kLiraModelPart_Visible = 1
+   kLiraModelPart_Selected = 2
+   kLiraModelPart_FromArray = 3
+
+## enum LiraSoilMethodEnum  -- Parameter used in SetSoilModel method of LiraDocument object
+   kLiraSoilMethod_1 = 1
+   kLiraSoilMethod_2 = 2
+   kLiraSoilMethod_3 = 3
+   kLiraSoilMethod_Savinov = 4
+   kLiraSoilMethod_5 = 5
+   kLiraSoilMethod_6 = 6
+
+## enum LiraSoilMethod6DirEnum  -- 
+   kLiraSoilMethod6Dir_C1z = 1
+   kLiraSoilMethod6Dir_C1xx = 2
+   kLiraSoilMethod6Dir_C1yy = 3
+
+## enum LiraSoilC2Enum  -- Calculate C2 modulus
+   kLiraSoilC2_No = 0
+   kLiraSoilC2_Yes = 1
+
+## enum LiraSoilLPosEnum  -- Where to create loads in soil model
+   kLiraSoilLPos_Center = 0
+   kLiraSoilLPos_LowerFace = 1
+
+## enum LiraCmdIdEnum  -- Examples of LIRA-FEM command identifiers. More identifiers can be obtained from LIRA-FEM menu resource in visor.resources.dll
+   kLiraCmdId_Fragmetation = 5115
+   kLiraCmdId_RestoreModel = 5117
+   kLiraCmdId_FitInWindow = 5085
+   kLiraCmdId_ProjectionIsometric = 5249
+   kLiraCmdId_ProjectionXOZ = 5112
+   kLiraCmdId_ProjectionXOY = 5113
+
+## dispatch ILiraMeasurementUnits  -- Units of measurement of all input tables. After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   LoadDefaults() -> ILiraMeasurementUnits*   // Changes all properties of this object to their default values. Calling this method is recommended. After calling this method, call SetToApplication() method to force LIRA-FEM using them
+   get Geometry() -> LiraUnitsGeometryEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put Geometry(LiraUnitsGeometryEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get Sections() -> LiraUnitsGeometryEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put Sections(LiraUnitsGeometryEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get Loads1() -> LiraUnitsForceEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put Loads1(LiraUnitsForceEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get Loads2() -> LiraUnitsGeometryEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put Loads2(LiraUnitsGeometryEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get MaterialProperties1() -> LiraUnitsStressEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put MaterialProperties1(LiraUnitsStressEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get MaterialProperties2() -> LiraUnitsGeometryEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put MaterialProperties2(LiraUnitsGeometryEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get Temperature() -> LiraUnitsTemperatureEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put Temperature(LiraUnitsTemperatureEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get Displacements() -> LiraUnitsGeometryEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put Displacements(LiraUnitsGeometryEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get Stresses1() -> LiraUnitsStressEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put Stresses1(LiraUnitsStressEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get Stresses2() -> LiraUnitsGeometryEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put Stresses2(LiraUnitsGeometryEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get Forces1() -> LiraUnitsForceEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put Forces1(LiraUnitsForceEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get Forces2() -> LiraUnitsGeometryEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put Forces2(LiraUnitsGeometryEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get DiameterOfReinforcent() -> LiraUnitsGeometryEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put DiameterOfReinforcent(LiraUnitsGeometryEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get AreaOfReinforcent() -> LiraUnitsGeometryEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put AreaOfReinforcent(LiraUnitsGeometryEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get WeightOfReinforcent() -> LiraUnitsWeightEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put WeightOfReinforcent(LiraUnitsWeightEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get WidthOfCrackPropagation() -> LiraUnitsGeometryEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put WidthOfCrackPropagation(LiraUnitsGeometryEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   get AreaOfFormwork() -> LiraUnitsGeometryEnum   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   put AreaOfFormwork(LiraUnitsGeometryEnum p0) -> VOID   // After adjusting properties of this object, call SetToApplication() method to force LIRA-FEM using them
+   SetToApplication() -> VOID   // Forces LIRA-FEM to use units of measurement currently adjusted in this object
+
+## enum LiraUnitsGeometryEnum  -- Geometry measurement units
+   kLiraUnitsGeometry_None = -1
+   kLiraUnitsGeometry_m = 0
+   kLiraUnitsGeometry_cm = 1
+   kLiraUnitsGeometry_mm = 2
+   kLiraUnitsGeometry_ft = 3
+   kLiraUnitsGeometry_in = 4
+
+## enum LiraUnitsForceEnum  -- Force measurement units
+   kLiraUnitsForce_g = 0
+   kLiraUnitsForce_kg = 1
+   kLiraUnitsForce_t = 2
+   kLiraUnitsForce_N = 3
+   kLiraUnitsForce_kN = 4
+   kLiraUnitsForce_MN = 5
+   kLiraUnitsForce_lb = 6
+   kLiraUnitsForce_kips = 7
+
+## enum LiraUnitsStressEnum  -- Force measurement units
+   kLiraUnitsStress_g = 0
+   kLiraUnitsStress_kg = 1
+   kLiraUnitsStress_t = 2
+   kLiraUnitsStress_N = 3
+   kLiraUnitsStress_kN = 4
+   kLiraUnitsStress_MN = 5
+   kLiraUnitsStress_lb = 6
+   kLiraUnitsStress_kips = 7
+   kLiraUnitsStress_Pa = 8
+   kLiraUnitsStress_kPa = 9
+   kLiraUnitsStress_MPa = 10
+
+## enum LiraUnitsTemperatureEnum  -- Weight measurement units
+   kLiraUnitsTemperature_C = 0
+   kLiraUnitsTemperature_F = 1
+
+## enum LiraUnitsWeightEnum  -- Weight measurement units
+   kLiraUnitsWeight_g = 0
+   kLiraUnitsWeight_kg = 1
+   kLiraUnitsWeight_t = 2
+   kLiraUnitsWeight_lb = 3
+   kLiraUnitsWeight_kips = 4
+
+## enum LiraZipEnum  -- What to zip. Used as a parameter of StartZip( ) function
+   kLiraZip_InitialData = 1
+   kLiraZip_Results = 2
+   kLiraZip_All = 3
+
+## dispatch _ILiraApplicationEvents  -- 
+   AnalysisStarting(LiraAnalysisStageEnum Stage) -> VOID   // The specified Stage of LIRA-FEM analysis will immediately start
+   AnalysisFinished(LiraAnalysisFinishedEnum FinishCode) -> VOID   // LIRA-FEM analysis finished
+   AnalysisStopped(LiraAnalysisStoppedEnum StopCode) -> VOID   // LIRA-FEM analysis is stopped and requires user interaction
+   ZipFinished(BSTR ZipPathName, LiraZipFinishedEnum FinishCode, BSTR Errors) -> VOID   // Creation of a LIRA-FEM zip archive ZipPathName is finished. Parameter Error lists errors occurred during zip process
+   UnzipFinished(BSTR ZipPathName, LiraZipFinishedEnum FinishCode, BSTR Errors) -> VOID   // Unpacking of a LIRA-FEM zip archive finished. Parameter Error lists errors occurred during unzip process
+
+## enum LiraAnalysisStageEnum  -- Stage of the LIRA-FEM analysis
+   kLiraAnalysisStage_FEA = 0
+   kLiraAnalysisStage_DCF = 1
+   kLiraAnalysisStage_DCFU = 2
+   kLiraAnalysisStage_LoadsOnFragment = 3
+   kLiraAnalysisStage_DCL = 4
+   kLiraAnalysisStage_Stability = 5
+   kLiraAnalysisStage_Stresses = 6
+   kLiraAnalysisStage_Cracks = 7
+   kLiraAnalysisStage_DesignOption_1 = 1001
+   kLiraAnalysisStage_DesignOption_2 = 1002
+   kLiraAnalysisStage_DesignOption_3 = 1003
+   kLiraAnalysisStage_DesignOption_4 = 1004
+   kLiraAnalysisStage_DesignOption_5 = 1005
+   kLiraAnalysisStage_DesignOption_6 = 1006
+   kLiraAnalysisStage_DesignOption_7 = 1007
+   kLiraAnalysisStage_DesignOption_8 = 1008
+   kLiraAnalysisStage_DesignOption_9 = 1009
+   kLiraAnalysisStage_ResultCSVs = 100000
+
+## enum LiraAnalysisFinishedEnum  -- Finish code of LIRA-FEM analysis
+   kLiraAnalysisFishised_OK = 0
+   kLiraAnalysisFishised_Fail = 1
+   kLiraAnalysisFishised_Stop = 2
+
+## enum LiraAnalysisStoppedEnum  -- Stop code of LIRA-FEM analysis
+   kLiraAnalysisStopped_FEA = 0
+   kLiraAnalysisStopped_Dialog = 1
+
+## enum LiraZipFinishedEnum  -- Finish code for LIRA-FEM archive creation and unpacking
+   kLiraZipFinished_OK = 0
+   kLiraZipFinished_Failed = 1
+   kLiraZipFinished_FailedMoving = 2
+
+## coclass LiraDocument  -- LIRA-FEM Document
+
+## coclass LiraTables  -- All input tables. Can include one ore more LIRA-FEM input tables and/or nested groups of input tables
+
+## coclass LiraTableGroup  -- Group of input tables. Can include one ore more LIRA-FEM input tables and/or nested groups of input tables
+
+## coclass LiraTable  -- Input table. An input table is a table for entry and edition of initial data of LIRA-FEM document
+
+## dispatch ILiraTable  -- Input table. An input table is a table for entry and edition of initial data of LIRA-FEM document
+   get Document() -> ILiraDocument*   // Document that owns this item of input table group
+   get Name() -> BSTR   // Name of this item
+   put Name(BSTR p0) -> VOID   // Name of this item
+   get Type() -> LiraTableEnum   // Type of this item
+   GetParameters(VARIANT* pVals) -> VOID   // Returns table-specific parameters
+   SetParameters(VARIANT NewVals) -> VOID   // Sets new table-specific parameters
+   SetContents(VARIANT Data) -> VOID   // Replaces all contents of this table with Data. Data is a two-dimension array of VARIANTs: Dim Data(MaxRow, MaxColumn), one VARIANT per cell. Also Data can be a tab-separated multi-line string
+   GetContents(VARIANT* pData) -> VOID   // Returns all contents of this table. pData is a two-dimension array of VARIANTs: Dim pData(MaxRow, MaxColumn). pData can also be a tab-separated multi-line string. The desired return type may be specified in pData parameter before call of this function
+   get InitialModelPart() -> LiraModelPartEnum   // Part of finite element model displayed in this table
+   SaveInitialModelPictureEmf(BSTR EmfFilePath) -> VOID   // Saves the picture of the finite element model at the moment when this table was created to the file FilePath. The format of the picture is EMF
+   FindSelection(VARIANT* pRows) -> VOID   // Returns numbers of rows (zero-based) corresponding the current selection in the FE model. The supported return types are array of VARIANTs or array of INTs. The desired return type may be specified in pRows parameter before call of this function
+   SelectOnModel(VARIANT Rows) -> VOID   // Selects in the FE model objects that correspond row numbers (zero-based) passed in Rows parameter. Rows can be an array of VARIANTs or array of INTs
+   get IsModified() -> BOOL   // Modification flag. It is true if the contents table was modified after creation or last successful call of Apply() method or false otherwise
+   Apply(BSTR* pErrs) -> BOOL   // Applies contents of this table to the owning FE model. Clears IsModified flag of the table. Returns non-zero if succeeded or 0 otherwise. pErrs receives errors if any. Error format: "Row_No\tColumn_No\tError_Text\r\n" where \t, \r\n are tab and EOL
+   RefillFromModel() -> VOID   // Cancels all modification made to this table and refills its contents from the current state of owning finite element model
+
+## coclass LiraMeasurementUnits  -- Units of measurement of all input tables. After adjusting properties of this object, pass it to LiraApplication.ChangeUnits() method
+
+## enum LiraCsvTableEnum  -- 
+   kLiraCsvTable_Solution_protocol = 1
+   kLiraCsvTable_Displacement = 5
+   kLiraCsvTable_Forces = 6
+   kLiraCsvTable_Dyn_period = 9
+   kLiraCsvTable_Dyn_form = 10
+   kLiraCsvTable_Dyn_inert_force = 11
+   kLiraCsvTable_Dyn_mass = 17
+   kLiraCsvTable_Dcf_calc = 8
+   kLiraCsvTable_Dcf_calc_long = 28
+   kLiraCsvTable_Dcf_norm = 29
+   kLiraCsvTable_Dcf_norm_long = 30
+   kLiraCsvTable_Unif_dcf_calc = 40
+   kLiraCsvTable_Unif_dcf_calc_long = 41
+   kLiraCsvTable_Unif_dcf_norm = 42
+   kLiraCsvTable_Unif_dcf_norm_long = 43
+   kLiraCsvTable_Dcl_displacement = 23
+   kLiraCsvTable_Dcl_intension = 23
+   kLiraCsvTable_Dcl_crit_calc = 53
+   kLiraCsvTable_Dcl_crit_calc_long = 54
+   kLiraCsvTable_Dcl_crit_norm = 55
+   kLiraCsvTable_Dcl_crit_norm_long = 56
+   kLiraCsvTable_Litera_force = 14
+   kLiraCsvTable_Litera_dcl = 15
+   kLiraCsvTable_Litera_dcf = 1015
+   kLiraCsvTable_StabLambda = 18
+   kLiraCsvTable_StabLengthK = 19
+   kLiraCsvTable_StabForm = 20
+   kLiraCsvTable_Load_fragment = 26
+   kLiraCsvTable_Load_fragment_dcl = 27
+   kLiraCsvTable_Load_punching = 44
+   kLiraCsvTable_Dcf_punching = 45
+   kLiraCsvTable_Dcl_punching = 46
+   kLiraCsvTable_Arm_punching = 47
+   kLiraCsvTable_Arm = 63
+   kLiraCsvTable_ArmBars = 31
+   kLiraCsvTable_ArmPlates = 32
+   kLiraCsvTable_Arm_note = 33
+   kLiraCsvTable_Met_check = 49
+   kLiraCsvTable_Met_selection = 50
+   kLiraCsvTable_Met_final_check = 51
+   kLiraCsvTable_Met_final_selection = 52
+   kLiraCsvTable_Dcf_load_factor = 48
+   kLiraCsvTable_Dcl_load_factor = 39
+   kLiraCsvTable_Temperature_res = 57
+   kLiraCsvTable_Dcl_calc = 58
+   kLiraCsvTable_Dcl_calc_long = 59
+   kLiraCsvTable_Dcl_norm = 60
+   kLiraCsvTable_Dcl_norm_long = 61
+   kLiraCsvTable_Dcl_crit = 62
+   kLiraCsvTable_Brick_force_res = 71
+   kLiraCsvTable_Brick_dcl_res = 72
+   kLiraCsvTable_Brick_dcf_res = 73
+   kLiraCsvTable_Brick_reinforcement_res = 74
+   kLiraCsvTable_Rebars_check = 75
+   kLiraCsvTable_Piers_force_res = 76
+   kLiraCsvTable_Piers_dcl_res = 77
+   kLiraCsvTable_Piers_dcf_res = 78
+   kLiraCsvTable_Displacements_steps = 79
+   kLiraCsvTable_Forces_steps = 80
+   kLiraCsvTable_Piles = 81
+   kLiraCsvTable_Summary_loads = 82
+   kLiraCsvTable_Nodes_src = 101
+   kLiraCsvTable_Elements_src = 102
+   kLiraCsvTable_Rigids = 103
+   kLiraCsvTable_Nodal_loads_src = 104
+   kLiraCsvTable_Dyn_nodal_loads_src = 105
+   kLiraCsvTable_Local_loads_src = 106
+   kLiraCsvTable_Soil_props_src = 107
+   kLiraCsvTable_Nonlinear = 108
+   kLiraCsvTable_Reinforcement = 109
+   kLiraCsvTable_Rc_src = 110
+   kLiraCsvTable_Steel_src = 111
+   kLiraCsvTable_Brick_src = 112
+   kLiraCsvTable_Adjusted_reinforcement_src = 113
+   kLiraCsvTable_Hinges_src = 114
+   kLiraCsvTable_Piers_src = 115
+   kLiraCsvTable_Dcl_factors_src = 116
+   kLiraCsvTable_Soil_properties = 117
+   kLiraCsvTable_Drills = 118
+
+## enum LiraDeadWeightLoadEnum  -- 
+   kLiraDeadWeightLoad_UpdateAllNoYf = 0
+   kLiraDeadWeightLoad_DeleteAll = -1
+   kLiraDeadWeightLoad_DeleteSelBars = -2
+   kLiraDeadWeightLoad_DeleteSelPlates = -3
+   kLiraDeadWeightLoad_DeleteSelSolids = -4
+   kLiraDeadWeightLoad_AddToSelected = 16
+   kLiraDeadWeightLoad_AddToAll = 32
+   kLiraDeadWeightLoad_AddToAssembedAtCurrentStage = 64
+   kLiraDeadWeightLoad_AddToAssembedAtAllStages = 128
+   kLiraDeadWeightLoad_SkipStifStandard = 256
+   kLiraDeadWeightLoad_SkipStifMetal = 512
+   kLiraDeadWeightLoad_SkipStifCompositeRcAndSteel = 1024
+   kLiraDeadWeightLoad_SkipStifPlateSolidNumerical = 2048
+   kLiraDeadWeightLoad_SkipUpdate = 4096
+   kLiraDeadWeightLoad_SkipBarOffsets = 8192

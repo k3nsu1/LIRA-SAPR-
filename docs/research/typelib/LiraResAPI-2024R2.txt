@@ -1,0 +1,757 @@
+LIB ('LiraSaprRes', None, 0, None)
+
+## coclass LiraResultsAccess  -- Root object for accessing analysis results
+
+## dispatch ILiraResultsAccess  -- Interface for accessing the analysis results
+   CreateNewRequest(LiraRequestEnum Req) -> ILiraResultRequestBase*   // Creates a new request for analysis results.  Req parameter is a member of LiraRequestEnum enumeration. The type of returned request object is defined by Req parameter. The returned request object must be properly filled in and then passed as the parameter to o
+   LoadCaseDisplacements(ILiraLoadCaseDisplacementsRequest* Req) -> ILiraLoadCaseDisplacementsResponse*   // Returns displacements in load cases. Reg parameter must be created by CreateNewRequest function and properly filled in before calling this function
+   LoadCaseForces(ILiraLoadCaseForcesRequest* Req) -> ILiraLoadCaseForcesResponse*   // Returns forces and stresses from for load cases. Reg parameter must be created by CreateNewRequest function and properly filled in before calling this function
+   LoadCombinationDisplacements(ILiraLoadCombinationDisplacementsRequest* Req) -> ILiraLoadCombinationDisplacementsResponse*   // Returns displacements for load combinations (DCL). Reg parameter must be created by CreateNewRequest function and properly filled in before calling this function
+   LoadCombinationForces(ILiraLoadCombinationForcesRequest* Req) -> ILiraLoadCombinationForcesResponse*   // Returns forces from load combinations (DCL). Reg parameter must be created by CreateNewRequest function and properly filled in before calling this function
+   FragmLoads(ILiraFragmLoadsRequest* Req) -> ILiraFragmLoadsResponse*   // Returns loads on Fragment. Reg parameter must be created by CreateNewRequest function and properly filled in before calling this function
+   PunchLoads(ILiraPunchLoadsRequest* Req) -> ILiraPunchLoadsResponse*   // Returns loads on punching shear contours. Reg parameter must be created by CreateNewRequest function and properly filled in before calling this function
+   DesignCombinationForces(ILiraDesignCombinationForcesRequest* Req) -> ILiraDesignCombinationForcesResponse*   // Returns forces for design combinations. Reg parameter must be created by CreateNewRequest function and properly filled in before calling this function
+   PeriodsOfVibrations(ILiraPeriodsOfVibrationsRequest* Req) -> ILiraPeriodsOfVibrationsResponse*   // Returns frequencies of dynamic load cases. Reg parameter must be created by CreateNewRequest function and properly filled in before calling this function
+   SelectedReinforcement(ILiraSelectedReinforcementRequest* Req) -> ILiraSelectedReinforcementResponse*   // Returns the selected reinforcement in elements. Reg parameter must be created by CreateNewRequest function and properly filled in before calling this function
+   MainData(ILiraMainDataRequest* Req) -> ILiraMainDataResponse*   // Returns the document's main data
+
+## enum LiraRequestEnum  -- Type of request object
+   kLiraRequest_LoadCaseDisplacement = 1
+   kLiraRequest_LoadCaseForces = 2
+   kLiraRequest_FragmLoadForces = 3
+   kLiraRequest_PunchLoadForces = 4
+   kLiraRequest_LoadCombinationForces = 5
+   kLiraRequest_LoadCombinationDisplacements = 6
+   kLiraRequest_DesignCombinationForces = 7
+   kLiraRequest_PeriodsOfVibrations = 8
+   kLiraRequest_SelectedReinforcement = 9
+   kLiraRequest_MainData = 10
+
+## dispatch ILiraResultRequestBase  -- Base interface for requesting results of LIRA-FEM analysis
+   get DocumentName() -> BSTR   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   put DocumentName(BSTR p0) -> VOID   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   get SuperElement() -> I4   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   put SuperElement(I4 p0) -> VOID   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+
+## dispatch ILiraLoadCaseDisplacementsRequest  -- Interface for requesting displacements of nodes from load cases
+   get DocumentName() -> BSTR   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   put DocumentName(BSTR p0) -> VOID   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   get SuperElement() -> I4   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   put SuperElement(I4 p0) -> VOID   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   get Deformation() -> LiraDeformationEnum   // Kind of the requested FE-model deformation. Default is kLiraDeformation_DeformedShape
+   put Deformation(LiraDeformationEnum p0) -> VOID   // Kind of the requested FE-model deformation. Default is kLiraDeformation_DeformedShape
+   get Nodes() -> ILiraLongsArray*   // Numbers of nodes of FE model whose analysis results are requested. The numbers are 1-based
+   get Directions() -> ILiraLongsArray*   // Directions on which analysis results are requested. The directions are members of LiraDirectionEnum enumeration. By default displacements in all directions are requested
+   get LoadCases() -> ILiraLongsArray*   // Load cases on which analysis results are requested. By default displacements in all load cases are requested
+   get Histories() -> ILiraLongsArray*   // Histories on which analysis results are requested. If this property is not specified, the results at the intermediate steps of load histories are omitted
+   get LoadCasesNumbersInHistories() -> ILiraLongsArray*   // Numbers of load cases in their order in histories. By default, results in all load cases are requested
+
+## enum LiraDeformationEnum  -- Kind of the deformed shape
+   kLiraDeformation_DeformedShape = 0
+   kLiraDeformation_DynamicModeShape = 1
+
+## dispatch ILiraLongsArray  -- Helper interface for an array of long integers
+   get Count() -> I4   // Gets or sets the number of elements of this array
+   put Count(I4 p0) -> VOID   // Gets or sets the number of elements of this array
+   get Item(I4 i) -> I4   // Gets or sets the value of the i-th item of this array
+   put Item(I4 i, I4 p1) -> VOID   // Gets or sets the value of the i-th item of this array
+   AddFromString(BSTR Numbers) -> VOID   // Adds to this array numbers from a string, for example 2, 3, 4, 7-12
+   AddToString() -> BSTR   // Returns all elements of this array as a string
+
+## dispatch ILiraLoadCaseDisplacementsResponse  -- Interface for obtaining displacements of nodes from load cases
+   get LoadCases() -> ILiraLoadCaseInfos*   // Returns load cases available in this response object
+   get Histories() -> ILiraLoadHistoryInfos*   // Returns non-linear load histories available in this response object
+   GetProblemAttributes(BOOL* TimeHistory, BOOL* Step, BOOL* Assemblage) -> VOID   // Returns attributes of performed finite element analysis.  TimeHistory, Step and Assemblage attributes indicate the corresponding analysis was performed and its results are available
+   GetNodeX(I4 Node, I4 LC, I4 LCDShape, I4 History) -> R8   // Returns displacement along X axis, meters (m). Node parameter is the number of the node of the FE model. LC parameter is the number of the load case (or the item of the non-linear load history; use LC=0 to obtain data on creep). LCDShape parameter is the numbe
+   GetNodeY(I4 Node, I4 LC, I4 LCDShape, I4 History) -> R8   // Returns displacement along Y axis, meters (m). Node parameter is the number of the node of the FE model. LC parameter is the number of the load case (or the item of the non-linear load history; use LC=0 to obtain data on creep). LCDShape parameter is the numbe
+   GetNodeZ(I4 Node, I4 LC, I4 LCDShape, I4 History) -> R8   // Returns displacement along Z axis, meters (m). Node parameter is the number of the node of the FE model. LC parameter is the number of the load case (or the item of the non-linear load history; use LC=0 to obtain data on creep). LCDShape parameter is the numbe
+   GetNodeUX(I4 Node, I4 LC, I4 LCDShape, I4 History) -> R8   // Returns rotation about X axis, radians (rad). Node parameter is the number of the node of the FE model. LC parameter is the number of the load case (or the item of the non-linear load history; use LC=0 to obtain data on creep). LCDShape parameter is the number
+   GetNodeUY(I4 Node, I4 LC, I4 LCDShape, I4 History) -> R8   // Returns rotation about Y axis, radians (rad). Node parameter is the number of the node of the FE model. LC parameter is the number of the load case (or the item of the non-linear load history; use LC=0 to obtain data on creep). LCDShape parameter is the number
+   GetNodeUZ(I4 Node, I4 LC, I4 LCDShape, I4 History) -> R8   // Returns rotation about Z axis, radians (rad). Node parameter is the number of the node of the FE model. LC parameter is the number of the load case (or the item of the non-linear load history; use LC=0 to obtain data on creep). LCDShape parameter is the number
+   GetNodeW(I4 Node, I4 LC, I4 LCDShape, I4 History) -> R8   // Returns deplanation, radians per meter (rad/m). Node parameter is the number of the node of the FE model. LC parameter is the number of the load case (or the item of the non-linear load history; use LC=0 to obtain data on creep). LCDShape parameter is the numb
+   GetNodeT(I4 Node, I4 LC, I4 LCDShape, I4 History) -> R8   // Returns temperature of the node, degrees (°C). Node parameter is the number of the node of the FE model. LC parameter is the number of the load case (or the item of the non-linear load history; use LC=0 to obtain data on creep). LCDShape parameter is the numbe
+   get NodeNumbers() -> ILiraLongsArray*   // Returns node numbers.
+   get Directions() -> ILiraLongsArray*   // Returns array of directions available in the nodes.
+
+## dispatch ILiraLoadCaseInfos  -- Interface for array of load cases
+   get Count() -> I4   // Returns the size of this array
+   get Item(I4 i) -> ILiraLoadCaseInfo*   // Returns the i-th item of this array
+
+## dispatch ILiraLoadCaseInfo  -- Interface for accessing properties of a load case
+   get Number() -> I4   // Returns the number of this load case. This is 1-based number
+   get DeformedShapeCount() -> I4   // Returns the number of deformed shapes for the dynamic load case. This value is 1 for any static load case
+   get DynamicModeShapeCount() -> I4   // Returns the number of mode shapes for the dynamic load case. This value is 0 for any static load case
+   get DeformedShapes() -> ILiraLongsArray*   // Returns the numbers of the deformed shapes for the dynamic load case
+   get SummaryShapeCount() -> I4   // Returns the number of summary shapes of the dynamic load case
+
+## dispatch ILiraLoadHistoryInfos  -- Interface for accessing non-linear load histories
+   get Count() -> I4   // Returns the size of this array
+   get Item(I4 i) -> ILiraLoadHistoryInfo*   // Returns the i-th item of this array
+
+## dispatch ILiraLoadHistoryInfo  -- Interface for accessing properties of a non-linear load history
+   get Number() -> I4   // Returns the number of this non-linear load history
+   get Items() -> ILiraLongsArray*   // Returns items of this non-linear load history in the order of their appearance. An item of a load history is the number of the load case or load combination
+   get ItemCount() -> I4   // Returns the number of load cases and load combinations in this non-linear load history
+   get ItemStepCount(I4 Item) -> I4   // Returns the number of steps in an item of this non-linear load history. Item parameter is the number of the load case or load combination in the order of their appearance in the history
+   get ItemStepPercentages(I4 Item) -> ILiraDoublesArray*   // Returns the percentages the item of the non-linear load history is divided to, one percent value per one step. Item parameter is the number of the load case or load combination in the order of their appearance in the history
+   GetItemStepFromItsPercentage(I4 Item, R8 Percentage) -> I4   // Returns the number of the step of the item of the non-linear load history from its percentage value. Item parameter is the number of the load case or load combination in the order of their appearance in the history
+
+## dispatch ILiraDoublesArray  -- Helper interface of an array of double precision float values
+   get Count() -> I4   // Gets or sets the number of elements of this array
+   put Count(I4 p0) -> VOID   // Gets or sets the number of elements of this array
+   get Item(I4 i) -> R8   // Gets or sets the value of the i-th item of this array
+   put Item(I4 i, R8 p1) -> VOID   // Gets or sets the value of the i-th item of this array
+   AddToString() -> BSTR   // Returns all elements of this array as a string
+
+## dispatch ILiraLoadCaseForcesRequest  -- Interface for requesting forces from load cases
+   get DocumentName() -> BSTR   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   put DocumentName(BSTR p0) -> VOID   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   get SuperElement() -> I4   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   put SuperElement(I4 p0) -> VOID   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   get Elements() -> ILiraLongsArray*   // Numbers of finite elements whose analysis results are requested. The numbers are 1-based
+   get Forces() -> ILiraLongsArray*   // Forces on which analysis results are requested. The forces are members of LiraForceEnum enumeration. By default all forces results are requested
+   get LoadCases() -> ILiraLongsArray*   // Numbers of load cases whose analysis results are requested. The numbers are 1-based. By default results of all load cases are requested
+   get ForcesSum() -> LiraForcesSumEnum   // Whether to sum components of force from dynamic mode shapes
+   put ForcesSum(LiraForcesSumEnum p0) -> VOID   // Whether to sum components of force from dynamic mode shapes
+   get Histories() -> ILiraLongsArray*   // Load histories on which analysis results are requested. If this property is not specified, the results at the intermediate steps are omitted
+   get LoadCasesNumbersInHistories() -> ILiraLongsArray*   // Load cases numbers in their order in load histories. By default results in all numbers of load cases are requested
+
+## enum LiraForcesSumEnum  -- What forces to prepare from the deformed shapes of the dynamic load case
+   kLiraForcesSum_No = 0
+   kLiraForcesSum_Yes = 1
+
+## dispatch ILiraLoadCaseForcesResponse  -- Interface for obtaining forces and stresses of finite elements from load cases
+   get LoadCases() -> ILiraLoadCaseInfos*   // Returns load cases available in this response object
+   get Histories() -> ILiraLoadHistoryInfos*   // Returns non-linear load histories available in this response object
+   GetSectionCount(I4 Element) -> I4   // Returns number of points on the finite element where analysis results are available (number of design sections). Element parameter is the number of the finite element. Element numbers are 1-based
+   GetFamily(I4 Element) -> LiraElementFamilyEnum   // Returns family of the finite element as a member of LiraElementFamilyEnum enumeration. Element parameter is the number of the finite element. Element numbers are 1-based
+   GetType(I4 Element) -> I4   // Returns number of type of the finite element. Element parameter is the number of the finite element. Element numbers are 1-based
+   GetForces(I4 Element) -> ILiraLongsArray*   // Returns array of internal forces or stresses available in the finite element. Each force is the member of LiraForceEnum enumeration. Element parameter is the number of the finite element. Element numbers are 1-based
+   GetProblemAttributes(BOOL* TimeHistory, BOOL* Step, BOOL* Assemblage) -> VOID   // Returns attributes of performed finite element analysis.  TimeHistory, Step and Assemblage attributes indicate the corresponding analysis was performed and its results are available
+   GetBarN(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns axial force along local X axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of t
+   GetBarQy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns shear force along local Y axis of the bar finite element, ton-force (tf).  Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of 
+   GetBarQz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns shear force along local Z axis of the bar finite element, ton-force (tf).  Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of 
+   GetBarMx(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns torque about local X axis of the bar finite element, ton-force by meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the ite
+   GetBarMy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns bending moment about local Y axis of the bar finite element, ton-force by meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or
+   GetBarMz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns bending moment about local Z axis of the bar finite element, ton-force by meter (tf*m).  Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (o
+   GetBarBw(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns bimoment in the bar finite element, ton-force by square meter (tf*m*m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the
+   GetBarTw(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns bending-torsion moment in the bar finite element, ton-force by meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item o
+   GetBarRy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns soil pressure along local Y axis of the bar finite element, ton-force (tf).  Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item o
+   GetBarRz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns soil pressure along local Z axis of the bar finite element, ton-force (tf).  Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item o
+   GetPlateNx(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns stress Nx along local X axis of the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load ca
+   GetPlateNy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns stress Ny along local Y axis of the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load ca
+   GetPlateNz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns stress Nz along local Z axis of the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load ca
+   GetPlateTxy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns stress Txy in the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of
+   GetPlateTxz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns stress Txz in the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of
+   GetPlateMx(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns bending moment Mx in the plate finite element, ton-force meter per meter (tf*m/m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the 
+   GetPlateMy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns bending moment My in the plate finite element, ton-force meter per meter (tf*m/m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the 
+   GetPlateMxy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns twisting moment Mxy in the plate finite element, ton-force meter per meter (tf*m/m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or th
+   GetPlateQx(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns shear force Qx in the plate finite element, ton-force per meter (tf/m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the
+   GetPlateQy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns shear force Qy in the plate finite element, ton-force per meter (tf/m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the
+   GetPlateRz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns soil pressure Rz on the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the i
+   GetSolidNx(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns stress Nx in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of 
+   GetSolidNy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns stress Ny in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of 
+   GetSolidNz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns stress Nz in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of 
+   GetSolidTxy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns stress Txy in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of
+   GetSolidTxz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns stress Txz in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of
+   GetSolidTyz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns stress Tyz in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of
+   GetSpecElementN(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force N of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-linear load 
+   GetSpecElementNx(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Nx of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-linear load
+   GetSpecElementNy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Ny of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-linear load
+   GetSpecElementNz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Nz of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-linear load
+   GetSpecElementMx(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Mx of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-linear load
+   GetSpecElementMy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force My of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-linear load
+   GetSpecElementMz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Mz of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-linear load
+   GetSpecElementQy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Qy of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-linear load
+   GetSpecElementQz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Qz of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-linear load
+   GetSpecElementRx(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Rx of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-linear load
+   GetSpecElementRy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Ry of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-linear load
+   GetSpecElementRz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Rz of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-linear load
+   GetSpecElementRux(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Rux of the special finite element, ton-force meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-li
+   GetSpecElementRuy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Ruy of the special finite element, ton-force meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-li
+   GetSpecElementRuz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Ruz of the special finite element, ton-force meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item of the non-li
+   GetSpec_58_59_Qz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Qz in the special finite element, ton-force (tf). Applies to FE types: 58, 59, 258, 259. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load c
+   GetSpec_58_59_Ny(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Ny in the special finite element, ton-force (tf). Applies to FE types: 58, 59, 258, 259. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load c
+   GetSpec_58_59_Qx(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Qx in the special finite element, ton-force (tf). Applies to FE types: 58, 59, 258, 259. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load c
+   GetSpec_310_N(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns axial force along local X axis of the bar finite element, ton-force (tf). Applies to FE type 310. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the loa
+   GetSpec_310_Mx(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns torque about local X axis of the bar finite element, ton-force meter (tf*m). Applies to FE type 310. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the 
+   GetSpec_310_My(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns bending moment about local Y axis of the bar finite element, ton-force meter (tf*m). Applies to FE type 310. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number
+   GetSpec_310_Qz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns shear force along local Z axis of the bar finite element, ton-force (tf). Applies to FE type 310. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the loa
+   GetSpec_310_Mz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns bending moment about local Z axis of the bar finite element, ton-force meter (tf*m). Applies to FE type 310. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number
+   GetSpec_310_Qy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns shear force along local Y axis of the bar finite element, ton-force (tf). Applies to FE type 310. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the loa
+   GetSpec_264_N(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force N in the special finite element, ton-force (tf). Applies to FE type 264. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the item
+   GetSpec_264_Qz(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Qz in the special finite element, ton-force (tf). Applies to FE type 264. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the ite
+   GetSpec_264_Qy(I4 Element, I4 CS, I4 LC, I4 LCDShape, I4 History) -> R4   // Returns force Qy in the special finite element, ton-force (tf). Applies to FE type 264. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC is the number of the load case (or the ite
+   get ElementNumbers() -> ILiraLongsArray*   // Returns element numbers.
+
+## enum LiraElementFamilyEnum  -- Finite element families
+   kLiraFamily_Undefined = 0
+   kLiraFamily_Bar = 1
+   kLiraFamily_Plate = 2
+   kLiraFamily_Solid = 3
+   kLiraFamily_SpecElement = 4
+   kLiraFamily_Spec_58_59 = 5
+   kLiraFamily_Spec_310 = 6
+   kLiraFamily_Spec_264 = 7
+
+## dispatch ILiraLoadCombinationDisplacementsRequest  -- Interface for requesting displacements from load combinations
+   get DocumentName() -> BSTR   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   put DocumentName(BSTR p0) -> VOID   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   get SuperElement() -> I4   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   put SuperElement(I4 p0) -> VOID   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   get Nodes() -> ILiraLongsArray*   // Numbers of nodes of finite element model whose analysis results are requested. The numbers are 1-based
+   get Directions() -> ILiraLongsArray*   // Directions on which analysis results are requested. The directions are members of LiraDirectionEnum enumeration. By default results in all directions are requested
+   get LoadCombinations() -> ILiraLongsArray*   // Load combinations whose analysis results are requested. The load combinations are 1-based. By default results of all load combinations are requested
+   get LoadCombinationTable() -> I4   // The number of the load combination table (DCL) whose analysis results are requested. The number is 1-based. By default this value is 1
+   put LoadCombinationTable(I4 p0) -> VOID   // The number of the load combination table (DCL) whose analysis results are requested. The number is 1-based. By default this value is 1
+
+## dispatch ILiraLoadCombinationDisplacementsResponse  -- Interface for obtaining displacements of nodes from load combinations (DCL)
+   get LoadCombinations() -> ILiraLoadCombinationInfos*   // Returns load combinations (DCL) available in this response object
+   GetNodeX(I4 Node, I4 LC) -> R8   // Returns displacement of the node along X axis, meters (m). Node parameter is the number of the node of the FE model, LC parameter is the number of the load combination. Node and LC are 1-based
+   GetNodeY(I4 Node, I4 LC) -> R8   // Returns displacement of the node along Y axis, meters (m). Node parameter is the number of the node of the FE model, LC parameter is the number of the load combination. Node and LC are 1-based
+   GetNodeZ(I4 Node, I4 LC) -> R8   // Returns displacement of the node along Z axis, meters (m). Node parameter is the number of the node of the FE model, LC parameter is the number of the load combination. Node and LC are 1-based
+   GetNodeUX(I4 Node, I4 LC) -> R8   // Returns rotation of the node about X axis, radians (rad). Node parameter is the number of the node of the FE model, LC parameter is the number of the load combination. Node and LC are 1-based
+   GetNodeUY(I4 Node, I4 LC) -> R8   // Returns rotation of the node about Y axis, radians (rad). Node parameter is the number of the node of the FE model, LC parameter is the number of the load combination. Node and LC are 1-based
+   GetNodeUZ(I4 Node, I4 LC) -> R8   // Returns rotation of the node about Z axis, radians (rad). Node parameter is the number of the node of the FE model, LC parameter is the number of the load combination. Node and LC are 1-based
+   GetNodeW(I4 Node, I4 LC) -> R8   // Returns deplanation of the node about X axis, radians per meter (rad/m). Node parameter is the number of the node of the FE model, LC parameter is the number of the load combination. Node and LC are 1-based
+   GetNodeT(I4 Node, I4 LC) -> R8   // Returns temperature of the node, degrees (°C). Node parameter is the number of the node of the FE model, LC parameter is the number of the load combination. Node and LC are 1-based
+   get NodeNumbers() -> ILiraLongsArray*   // Returns node numbers.
+   get Directions() -> ILiraLongsArray*   // Returns array of directions available in the nodes.
+
+## dispatch ILiraLoadCombinationInfos  -- Interface for an array of load combinations
+   get Count() -> I4   // Returns the size of this array
+   get Item(I4 i) -> ILiraLoadCombinationInfo*   // Returns the i-th item of this array
+   get Code() -> LiraLoadCombinationCodesEnum   // Returns building codes of load combinations
+   get IsNormativeLoads() -> I4   // Returns true if normative loads are specified in load cases
+
+## dispatch ILiraLoadCombinationInfo  -- Interface for accessing load combinations (DCL)
+   get Number() -> I4   // Returns the number of this load combination
+   get Name() -> BSTR   // Returns the name of this load combination
+   get FormulaNumber() -> I4   // Returns the formula number of this load combination
+   get LoadCombinationUsed() -> LiraLoadCombinationUseEnum   // Serviceability limit state calculations this load combination should be used for
+   get IsSpecial() -> I4   // Returns true if this load combination is specific
+   get IsSeismic() -> I4   // Returns true if this load combination is earthquake
+
+## enum LiraLoadCombinationUseEnum  -- Purpose for serviceability limit state load combinations
+   kLiraLoadCombinationUse_All = 0
+   kLiraLoadCombinationUse_Cracks = 1
+   kLiraLoadCombinationUse_Deflections = 2
+
+## enum LiraLoadCombinationCodesEnum  -- Building codes of load combinations
+   kLiraLoadCombinationCode_SNIP = 0
+   kLiraLoadCombinationCode_EUROCODE = 1
+   kLiraLoadCombinationCode_ACI = 2
+   kLiraLoadCombinationCode_BAEL = 3
+   kLiraLoadCombinationCode_IBC = 4
+   kLiraLoadCombinationCode_DBN = 5
+   kLiraLoadCombinationCode_STB_EN = 6
+   kLiraLoadCombinationCode_SP = 7
+   kLiraLoadCombinationCode_SP_RK_EN = 8
+   kLiraLoadCombinationCode_TKP_EN = 9
+   kLiraLoadCombinationCode_EN = 10
+
+## dispatch ILiraLoadCombinationForcesRequest  -- Interface for requesting forces from load combinations
+   get DocumentName() -> BSTR   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   put DocumentName(BSTR p0) -> VOID   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   get SuperElement() -> I4   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   put SuperElement(I4 p0) -> VOID   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   get Elements() -> ILiraLongsArray*   // Numbers of finite elements whose analysis results are requested. The numbers are 1-based
+   get Forces() -> ILiraLongsArray*   // Forces on which analysis results are requested. The forces are members of LiraForceEnum enumeration. By default results of all forces are requested
+   get LoadCombinations() -> ILiraLongsArray*   // Numbers of load combinations whose analysis results are requested. The numbers are 1-based. By default results of all load combinations are requested
+   get LoadCombinationTable() -> I4   // The number of the load combination table (DCL)whose analysis results are requested. The number is 1-based. By default this value is 1
+   put LoadCombinationTable(I4 p0) -> VOID   // The number of the load combination table (DCL)whose analysis results are requested. The number is 1-based. By default this value is 1
+   get LoadCombinationLimitState() -> ILiraLongsArray*   // Limit states of requested internal forces or stresses, members of LiraLimitStateForcesEnum enumeration. By default results for all limit states are requested
+
+## dispatch ILiraLoadCombinationForcesResponse  -- Interface for obtaining forses and stresses of finite elements from load combinations (DCF)
+   get LoadCombinations() -> ILiraLoadCombinationInfos*   // Returns load combinations (DCL) available in this response object
+   GetSectionCount(I4 Element) -> I4   // Returns number of points on the finite element where analysis results are available (number of design sections). Element parameter is the number of the finite element. Element number is 1-based
+   GetFamily(I4 Element) -> LiraElementFamilyEnum   // Returns family of the finite element as a member of LiraElementFamilyEnum enumeration. Element parameter is the number of the finite element. Element numbers are 1-based
+   GetType(I4 Element) -> I4   // Returns number of type of the finite element. Element parameter is the number of the finite element. Element numbers are 1-based
+   GetForces(I4 Element) -> ILiraLongsArray*   // Returns array of internal forces or stresses available in the finite element. Each force is a member of LiraForceEnum enumeration. Element parameter is the number of the finite element. Element numbers are 1-based
+   GetBarN(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns axial force along local X axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination.
+   GetBarQy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns shear force along local Y axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination.
+   GetBarQz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns shear force along local Z axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination.
+   GetBarMx(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns torque along local X axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination. LS p
+   GetBarMy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns bending moment bending about local Y axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load c
+   GetBarMz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns bending moment bending about local Z axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load c
+   GetBarBw(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns bimoment in the bar finite element, ton-force by square meter (tf*m*m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination. L
+   GetBarTw(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns bending-torsion moment in the bar finite element, ton-force by meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combinati
+   GetBarRy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns soil pressure along local Y axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combinatio
+   GetBarRz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns soil pressure along local Z axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combinatio
+   GetPlateNx(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns stress Nx along local X axis of the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of t
+   GetPlateNy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns stress Ny along local Y axis of the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of t
+   GetPlateNz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns stress Nz along local Z axis of the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of t
+   GetPlateTxy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns stress Txy in the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combinatio
+   GetPlateTxz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns stress Txz in the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combinatio
+   GetPlateMx(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns bending moment Mx in the plate finite element, ton-force meter per meter (tf*m/m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load com
+   GetPlateMy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns bending moment My in the plate finite element, ton-force meter per meter (tf*m/m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load com
+   GetPlateMxy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns twisting moment Mxy in the plate finite element, ton-force meter per meter (tf*m/m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load c
+   GetPlateQx(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns shear force Qx in the plate finite element, ton-force per meter (tf/m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination. L
+   GetPlateQy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns shear force Qy in the plate finite element, ton-force per meter (tf/m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination. L
+   GetPlateRz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns soil preassure Rz on the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load com
+   GetSolidNx(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns stress Nx in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination
+   GetSolidNy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns stress Ny in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination
+   GetSolidNz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns stress Nz in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination
+   GetSolidTxy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns stress Txy in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combinatio
+   GetSolidTxz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns stress Txz in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combinatio
+   GetSolidTyz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns stress Tyz in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combinatio
+   GetSpecElementRx(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns force Rx of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination. LS parameter is t
+   GetSpecElementRy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns force Ry of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination. LS parameter is t
+   GetSpecElementRz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns force Rz of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination. LS parameter is t
+   GetSpecElementRux(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns force Rux of the special finite element, ton-force meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination. LS param
+   GetSpecElementRuy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns force Ruy of the special finite element, ton-force meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination. LS param
+   GetSpecElementRuz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns force Ruz of the special finite element, ton-force meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combination. LS param
+   GetSpec_58_59_Qz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns force Qz in the special finite element, ton-force (tf). Applies to FE types: 58, 59, 258, 259. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of 
+   GetSpec_58_59_Ny(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns force Ny in the special finite element, ton-force (tf). Applies to FE types: 58, 59, 258, 259. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of 
+   GetSpec_58_59_Qx(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns force Qx in the special finite element, ton-force (tf). Applies to FE types: 58, 59, 258, 259. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of 
+   GetSpec_310_N(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns axial force along local X axis of the bar finite element, ton-force (tf). Applies to FE type 310. Element at its section CS from load combonation LC of limit state LS. Element, CS, LC, LS are 1-based
+   GetSpec_310_Mx(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns torque about local X axis of the bar finite element, ton-force meter (tf*m). Applies to FE type 310. Element at its section CS from load combonation LC of limit state LS. Element, CS, LC, LS are 1-based
+   GetSpec_310_My(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns bending moment about local Y axis of the bar finite element, ton-force meter (tf*m). Applies to FE type 310. Element at its section CS from load combonation LC of limit state LS. Element, CS, LC, LS are 1-based
+   GetSpec_310_Qz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns shear force along local Z axis of the bar finite element, ton-force (tf). Applies to FE type 310. Element at its section CS from load combonation LC of limit state LS. Element, CS, LC, LS are 1-based
+   GetSpec_310_Mz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns bending moment about local Z axis of the bar finite element, ton-force meter (tf*m). Applies to FE type 310. Element at its section CS from load combonation LC of limit state LS. Element, CS, LC, LS are 1-based
+   GetSpec_310_Qy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns shear force along local Y axis of the bar finite element, ton-force (tf). Applies to FE type 310. Element at its section CS from load combonation LC of limit state LS. Element, CS, LC, LS are 1-based
+   GetSpec_264_N(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns force N in the special finite element, ton-force (tf). Applies to FE type 264. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combina
+   GetSpec_264_Qz(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns force Qz in the special finite element, ton-force (tf). Applies to FE type 264. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combin
+   GetSpec_264_Qy(I4 Element, I4 CS, I4 LC, I4 LS) -> R4   // Returns force Qy in the special finite element, ton-force (tf). Applies to FE type 264. Element parameter is the number of the finite element. CS parameter is the number of the design section at the finite element. LC parameter is the number of the load combin
+   get ElementNumbers() -> ILiraLongsArray*   // Returns element numbers.
+
+## dispatch ILiraFragmLoadsRequest  -- Interface for request of node analysis results (loads on fragment)
+   get DocumentName() -> BSTR   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   put DocumentName(BSTR p0) -> VOID   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   get SuperElement() -> I4   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   put SuperElement(I4 p0) -> VOID   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   get Nodes() -> ILiraLongsArray*   // Numbers of nodes of finite element model whose analysis results are requested. The numbers are 1-based
+   get LoadCases() -> ILiraLongsArray*   // Numbers of load cases from which analysis results are requested. By default results from all load cases are requested
+   get Forces() -> ILiraLongsArray*   // Forces on which analysis results are requested. The forces are members of LiraFragmLoadForceEnum enumeration. By default all forces results are requested
+
+## dispatch ILiraFragmLoadsResponse  -- Interface for response of node analysis results (load on fragment)
+   get LoadCases() -> ILiraLoadCaseInfos*   // Returns load cases available in this response object
+   get Forces() -> ILiraLongsArray*   // Forces available in this responce object. The forces are members of LiraFragmLoadForceEnum enumeration
+   GetProblemAttributes(BOOL* DynamicsOverTime, BOOL* StepTypeMethod, BOOL* Assemblage) -> VOID   // Returns attributes of performed finite element analysis.  TimeHistory, Step and Assemblage attributes indicate the corresponding analysis was performed and its results are available
+   GetNodeRX(I4 Node, I4 LC, I4 LCDShape) -> R8   // Returns force along X axis of node coordinate system, ton-force (tf). Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic mode shape. All parameters are 1-based (neg
+   GetNodeRY(I4 Node, I4 LC, I4 LCDShape) -> R8   // Returns force along Y axis of node coordinate system, ton-force (tf). Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic mode shape. All parameters are 1-based (neg
+   GetNodeRZ(I4 Node, I4 LC, I4 LCDShape) -> R8   // Returns force along Z axis of node coordinate system, ton-force (tf). Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic mode shape. All parameters are 1-based (neg
+   GetNodeRUX(I4 Node, I4 LC, I4 LCDShape) -> R8   // Returns moment about X axis of node coordinate system, ton-force meter (tf*m). Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic mode shape. All parameters are 1-b
+   GetNodeRUY(I4 Node, I4 LC, I4 LCDShape) -> R8   // Returns moment about Y axis of node coordinate system, ton-force meter (tf*m). Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic mode shape. All parameters are 1-b
+   GetNodeRUZ(I4 Node, I4 LC, I4 LCDShape) -> R8   // Returns moment about Z axis of node coordinate system, ton-force meter (tf*m). Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic mode shape. All parameters are 1-b
+   GetNodeRBW(I4 Node, I4 LC, I4 LCDShape) -> R8   // Returns bimoment, ton-force square meter (tf*m*m). Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic mode shape. All parameters are 1-based (negative numbers of LC
+   get NodeNumbers() -> ILiraLongsArray*   // Returns node numbers.
+
+## dispatch ILiraPunchLoadsRequest  -- Interface for request of node analysis results (loads on punching shear contours)
+   get DocumentName() -> BSTR   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   put DocumentName(BSTR p0) -> VOID   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   get SuperElement() -> I4   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   put SuperElement(I4 p0) -> VOID   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   get Nodes() -> ILiraLongsArray*   // Numbers of nodes of finite element model whose analysis results are requested. The numbers are 1-based
+   get LoadCases() -> ILiraLongsArray*   // Numbers of load cases on which analysis results are requested. The numbers are 1-based. By default results in all load cases are requested
+   get Forces() -> ILiraLongsArray*   // Forces on which analysis results are requested. The forces are members of LiraPunchLoadForceEnum enumeration. By default all forces results are requested
+
+## dispatch ILiraPunchLoadsResponse  -- Interface for response of node analysis results (loads on punching shear contours)
+   get LoadCases() -> ILiraLoadCaseInfos*   // Returns load cases available in this response object
+   get Forces() -> ILiraLongsArray*   // Forces available in this responce object. The forces are members of LiraPunchLoadForceEnum enumeration
+   GetProblemAttributes(BOOL* DynamicsOverTime, BOOL* StepTypeMethod, BOOL* Assemblage) -> VOID   // Returns attributes of performed finite element analysis. TimeHistory, Step and Assemblage attributes indicate the corresponding analysis was performed and its results are available
+   GetNodeN(I4 Node, I4 LC, I4 LCDShape) -> R4   // Returns axial force, ton-force (tf) in punching shear contours around the specified node. Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic mode shape. Node, CS, L
+   GetNodeMX(I4 Node, I4 LC, I4 LCDShape) -> R4   // Returns torque about local X axis, ton-force meter (tf*m) in punching shear contours around the specified node. Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic m
+   GetNodeMY(I4 Node, I4 LC, I4 LCDShape) -> R4   // Returns torque about local Y axis, ton-force meter (tf*m) in punching shear contours around the specified node. Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic m
+   GetNodeMZ(I4 Node, I4 LC, I4 LCDShape) -> R4   // Returns torque about local Z axis, ton-force meter (tf*m) in punching shear contours around the specified node. Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic m
+   GetNodeQX(I4 Node, I4 LC, I4 LCDShape) -> R4   // Returns shear force along local X axis, ton-force (tf) in punching shear contours around the specified node. Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic mode
+   GetNodeQY(I4 Node, I4 LC, I4 LCDShape) -> R4   // Returns shear force along local Y axis, ton-force (tf)) in punching shear contours around the specified node. Node parameter is the number of the node of FE model. LC parameter is the number of the load case. LCDShape parameter is the number of the dynamic mod
+   get NodeNumbers() -> ILiraLongsArray*   // Returns node numbers.
+
+## dispatch ILiraDesignCombinationForcesRequest  -- Interface for requesting results of design force combination (DCF)
+   get DocumentName() -> BSTR   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   put DocumentName(BSTR p0) -> VOID   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   get SuperElement() -> I4   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   put SuperElement(I4 p0) -> VOID   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   get Elements() -> ILiraLongsArray*   // Numbers of finite elements whose analysis results are requested. The numbers are 1-based
+   get Forces() -> ILiraLongsArray*   // Forces on which analysis results are requested. The forces are members of LiraForceEnum enumeration. By default all forces results are requested
+   get DesignCombinationTable() -> I4   // The number of the design combination table (DCF) whose analysis results are requested. The number is 1-based. By default this value is 1
+   put DesignCombinationTable(I4 p0) -> VOID   // The number of the design combination table (DCF) whose analysis results are requested. The number is 1-based. By default this value is 1
+   get DesignCombinationLimitState() -> ILiraLongsArray*   // Limit states of internal forces or stresses. limit states are members of LiraLimitStateForcesEnum enumeration. By default results for all limit states are requested
+
+## dispatch ILiraDesignCombinationForcesResponse  -- Interface for accessing design combinations of forces (DCF) in  elements of finite element model
+   GetSectionCount(I4 Element) -> I4   // Returns number of points on the finite element where analysis results are available (number of design sections). Element parameter is the number of the finite element. Element numbers are 1-based
+   GetFamily(I4 Element) -> LiraElementFamilyEnum   // Returns family of the finite element as a member of LiraElementFamilyEnum enumeration. Element parameter is the number of the finite element. Element numbers are 1-based
+   GetType(I4 Element) -> I4   // Returns number of type of the finite element. Element parameter is the number of the finite element. Element numbers are 1-based
+   GetForces(I4 Element) -> ILiraLongsArray*   // Returns array of internal forces or stresses available in the finite element. Each force is a member of LiraForceEnum enumeration. Element parameter is the number of the finite element. Element numbers are 1-based
+   GetDCLCount(I4 Element, I4 CS, I4 LS) -> I4   // Returns the number of design combinations of forces at the specified design section of the specified finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. Element, CS numbers are 1-based
+   GetCriterionNumber(I4 Element, I4 CS, I4 LS, I4 DCF) -> I4   // Returns the criterion that caused the specified design combination of forces. Element parameter is the number of the finite element. CS parameter is the number of the design section. DCF parameter is the number of the design combination of forces. Element, CS,
+   GetColumnNumber(I4 Element, I4 CS, I4 LS, I4 DCF) -> I4   // Returns the column number in the DCF input data table that caused the specified design combination of forces. The column is an array of load factors. Element parameter is the number of the finite element. CS parameter is the number of the design section. DCF p
+   GetCraneEarthquakeFlag(I4 Element, I4 CS, I4 LS, I4 DCF) -> LiraCraneEarthquakeFlagsEnum   // Returns a member of LiraCraneEarthquakeFlagsEnum enumeration that indicates whether crane and/or earthquake load cases are included into the specified design combination of forces. Element parameter is the number of the finite element. CS parameter is the numb
+   GetInternalGroup(I4 Element, I4 CS, I4 LS, I4 DCF) -> LiraInternalGroupsEnum   // Return a member of LiraInternalGroupsEnum enumeration that indicates the internal group of in the specified design combination of forces. Element parameter is the number of the finite element. CS parameter is the number of the design section. DCF parameter is 
+   GetLoadCases(I4 Element, I4 CS, I4 LS, I4 DCF) -> ILiraLongsArray*   // Returns load cases included in the specified combination of design forces. Element parameter is the number of the finite element. CS parameter is the number of the design section. DCF parameter is the number of the design combination of forces. Element, CS, DC
+   GetProblemAttributes(BOOL* DynamicsOverTime, BOOL* StepTypeMethod, BOOL* Assemblage) -> VOID   // Returns attributes of performed finite element analysis.  TimeHistory, Step and Assemblage attributes indicate the corresponding analysis was performed and its results are available
+   GetBarN(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns axial force along local X axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the numb
+   GetBarQy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns shear force along local Y axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the numb
+   GetBarQz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns shear force along local Z axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the numb
+   GetBarMx(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns torque about local X axis of the bar finite element, ton-force by meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is th
+   GetBarMy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns bending moment about local Y axis of the bar finite element, ton-force by meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF paramet
+   GetBarMz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns bending moment about local Z axis of the bar finite element, ton-force by meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF paramet
+   GetBarBw(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns bimoment in the bar finite element, ton-force by square meter (tf*m*m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the number
+   GetBarTw(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns bending-torsion moment in the bar finite element, ton-force by meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the n
+   GetBarRy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns soil pressure along local Y axis of the bar finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the nu
+   GetBarRz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns soil pressure along local Z axis of the bar finite element, ton-force (tf). CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the number of the design combination of forces. Element, CS, 
+   GetPlateNx(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns stress Nx along local X axis of the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF p
+   GetPlateNy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns stress Ny along local Y axis of the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF p
+   GetPlateNz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns stress Nz along local Z axis of the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF p
+   GetPlateTxy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns stress Txy in the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the nu
+   GetPlateTxz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns stress Txz in the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the nu
+   GetPlateMx(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns bending moment Mx in the plate finite element, ton-force meter per meter (tf*m/m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is
+   GetPlateMy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns bending moment My in the plate finite element, ton-force meter per meter (tf*m/m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is
+   GetPlateMxy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns twisting moment Mxy in the plate finite element, ton-force meter per meter (tf*m/m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter 
+   GetPlateQx(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns shear force Qx in the plate finite element, ton-force per meter (tf/m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the number
+   GetPlateQy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns shear force Qy in the plate finite element, ton-force per meter (tf/m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the number
+   GetPlateRz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns soil preassure Rz on the plate finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is
+   GetSolidNx(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns stress Nx in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the num
+   GetSolidNy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns stress Ny in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the num
+   GetSolidNz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns stress Nz in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the num
+   GetSolidTxy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns stress Txy in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the nu
+   GetSolidTxz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns stress Txz in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the nu
+   GetSolidTyz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns stress Tyz in the solid finite element, ton-force per square meter (tf/m2). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the nu
+   GetSpecElementRx(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns force Rx of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the number of the design c
+   GetSpecElementRy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns force Ry of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the number of the design c
+   GetSpecElementRz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns force Rz of the special finite element, ton-force (tf). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the number of the design c
+   GetSpecElementRux(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns force Rux of the special finite element, ton-force meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the number of the
+   GetSpecElementRuy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns force Ruy of the special finite element, ton-force meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the number of the
+   GetSpecElementRuz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns force Ruz of the special finite element, ton-force meter (tf*m). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the number of the
+   GetSpec_58_59_Qz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns force Qz in the special finite element, ton-force (tf). Applies to FE types: 58, 59, 258, 259. Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF 
+   GetSpec_58_59_Ny(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns force Ny in the special finite element, ton-force (tf). Applies to FE types: 58, 59, 258, 259. Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF 
+   GetSpec_58_59_Qx(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns force Qx in the special finite element, ton-force (tf). Applies to FE types: 58, 59, 258, 259. Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF 
+   GetSpec_310_N(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns axial force along local X axis of the bar finite element, ton-force (tf). Applies to FE type 310. Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  D
+   GetSpec_310_Mx(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns torque about local X axis of the bar finite element, ton-force meter (tf*m). Applies to FE type 310. Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.
+   GetSpec_310_My(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns bending moment about local Y axis of the bar finite element, ton-force meter (tf*m). Applies to FE type 310. Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limi
+   GetSpec_310_Qz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns shear force along local Z axis of the bar finite element, ton-force (tf). Applies to FE type 310. Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  D
+   GetSpec_310_Mz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns bending moment about local Z axis of the bar finite element, ton-force meter (tf*m). Applies to FE type 310. Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limi
+   GetSpec_310_Qy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns shear force along local Y axis of the bar finite element, ton-force (tf). Applies to FE type 310. Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  D
+   GetSpec_264_N(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns force N in the special finite element, ton-force (tf). Applies to FE type 264. Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the
+   GetSpec_264_Qz(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns force Qz, ton-force (tf) of the special finite element (FE type 264). Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is the number o
+   GetSpec_264_Qy(I4 Element, I4 CS, I4 LS, I4 DCF) -> R4   // Returns force Qy in the special finite element, ton-force (tf). Applies to FE type 264. Element parameter is the number of the finite element. CS parameter is the number of the design section. LS parameter is the number of the limit state.  DCF parameter is th
+   get ElementNumbers() -> ILiraLongsArray*   // Returns element numbers.
+
+## enum LiraCraneEarthquakeFlagsEnum  -- Flags weather crane and/or earthquake load cases are available in the load combination
+   kLiraCraneEarthquakeFlag_None = 0
+   kLiraCraneEarthquakeFlag_Crane = 1
+   kLiraCraneEarthquakeFlag_Earthquake = 2
+   kLiraCraneEarthquakeFlag_CraneEarthquake = 3
+
+## enum LiraInternalGroupsEnum  -- Internal groups of design combination of forces (DCF)
+   kLiraInternalGroup_Undefined = 0
+   kLiraInternalGroup_A1 = 1
+   kLiraInternalGroup_B1 = 2
+   kLiraInternalGroup_C1 = 3
+   kLiraInternalGroup_D1 = 4
+   kLiraInternalGroup_A2 = 5
+   kLiraInternalGroup_B2 = 6
+   kLiraInternalGroup_C2 = 7
+   kLiraInternalGroup_D2 = 8
+   kLiraInternalGroup_E1 = 9
+
+## dispatch ILiraPeriodsOfVibrationsRequest  -- Interface for requesting periods of vibrations from load cases
+   get DocumentName() -> BSTR   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   put DocumentName(BSTR p0) -> VOID   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   get SuperElement() -> I4   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   put SuperElement(I4 p0) -> VOID   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   get LoadCases() -> ILiraLongsArray*   // Numbers of load cases on which analysis results are requested. The numbers are Number of design option. The number is Number of design option. The number is 1 based.  By default this value is 1.  By default this value is 1.  By default results from all load ca
+
+## dispatch ILiraPeriodsOfVibrationsResponse  -- Interface for accessing periods of vibrations of finite element model
+   get LoadCaseNumbers() -> ILiraLongsArray*   // Returns numbers of all dynamic load cases in the finite element problem
+   GetDynamicLoadCaseType(I4 LC) -> LiraDynamicLoadCaseTypesEnum   // Returns the type of dynamic load case as the member of LiraDynamicLoadCaseTypesEnum enumeration. LC parameter is the number of the load case.LC is 1-based
+   GetFrequenciesHz(I4 LC) -> ILiraDoublesArray*   // Returns the frequencies of the load case. LC parameter is the number of the load case. LC is 1-based
+   GetPeriods(I4 LC) -> ILiraDoublesArray*   // Returns the periods of the load case. LC parameter is the number of the load case. LC are 1-based
+   GetFrequenciesRadPerSec(I4 LC) -> ILiraDoublesArray*   // Returns the frequencies of the load case, radians per second (Rad/sec). LC parameter is the number of the load case. LC are 1-based
+   GetEigenvalues(I4 LC) -> ILiraDoublesArray*   // Returns the eigenvalues of the load case. LC parameter is the number of the load case. LC are 1-based
+   GetParticipFactors(I4 LC) -> ILiraDoublesArray*   // Returns the participation factors of the load case. LC parameter is the number of the load case. LC are 1-based
+   GetModalMasses(I4 LC) -> ILiraDoublesArray*   // Returns the modal masses of the load case. LC parameter is the number of the load case. LC are 1-based
+   GetAccumulatedModalMasses(I4 LC) -> ILiraDoublesArray*   // Returns the accumulated modal masses of the load case. LC parameter is the number of the load case. LC are 1-based
+
+## enum LiraDynamicLoadCaseTypesEnum  -- Types of dynamic load cases
+   kLiraLoadCaseType_Undefined = 0
+   kLiraLoadCaseType_Earthquake_20 = 20
+   kLiraLoadCaseType_Pulsation = 21
+   kLiraLoadCaseType_Impulse = 22
+   kLiraLoadCaseType_Impact = 23
+   kLiraLoadCaseType_Harmonic = 24
+   kLiraLoadCaseType_Accelerogram = 27
+   kLiraLoadCaseType_Three_component_accelerogram = 29
+   kLiraLoadCaseType_Earthquake_30 = 30
+   kLiraLoadCaseType_Earthquake_32 = 32
+   kLiraLoadCaseType_Earthquake_33 = 33
+   kLiraLoadCaseType_Earthquake_34 = 34
+   kLiraLoadCaseType_Earthquake_35 = 35
+   kLiraLoadCaseType_Earthquake_36 = 36
+   kLiraLoadCaseType_Earthquake_37 = 37
+   kLiraLoadCaseType_Earthquake_38 = 38
+   kLiraLoadCaseType_Earthquake_39 = 39
+   kLiraLoadCaseType_Earthquake_40 = 40
+   kLiraLoadCaseType_Earthquake_41 = 41
+   kLiraLoadCaseType_Earthquake_42 = 42
+   kLiraLoadCaseType_Earthquake_43 = 43
+   kLiraLoadCaseType_Earthquake_44 = 44
+   kLiraLoadCaseType_Earthquake_45 = 45
+   kLiraLoadCaseType_Earthquake_46 = 46
+   kLiraLoadCaseType_Earthquake_47 = 47
+   kLiraLoadCaseType_Earthquake_48 = 48
+   kLiraLoadCaseType_Earthquake_49 = 49
+   kLiraLoadCaseType_Earthquake_50 = 50
+   kLiraLoadCaseType_Earthquake_53 = 53
+   kLiraLoadCaseType_Earthquake_56 = 56
+   kLiraLoadCaseType_Earthquake_57 = 57
+   kLiraLoadCaseType_Earthquake_58 = 58
+   kLiraLoadCaseType_Earthquake_60 = 60
+   kLiraLoadCaseType_Earthquake_61 = 61
+   kLiraLoadCaseType_Earthquake_62 = 62
+   kLiraLoadCaseType_Earthquake_63 = 63
+   kLiraLoadCaseType_Earthquake_64 = 64
+   kLiraLoadCaseType_Modal_analysis_100 = 100
+
+## dispatch ILiraSelectedReinforcementRequest  -- Interface for requesting Reinforcement in elements
+   get DocumentName() -> BSTR   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   put DocumentName(BSTR p0) -> VOID   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   get SuperElement() -> I4   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   put SuperElement(I4 p0) -> VOID   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   get DesignOption() -> I4   // Number of design option. The number is 1-based.  By default this value is 1
+   put DesignOption(I4 p0) -> VOID   // Number of design option. The number is 1-based.  By default this value is 1
+   get Elements() -> ILiraLongsArray*   // Number of finite elements whose analysis results are requested. The numbers are 1-based
+   get ReinforcementInBars() -> ILiraLongsArray*   // Reinforcement position in bars for which analysis results are requested. Reinforcement position in bars are members of the LiraReinforcementInBarsEnum enumeration. By default, the results of all reinforcement are requested.
+   get ReinforcementInPlates() -> ILiraLongsArray*   // Reinforcement positions in plates for which analysis results are requested. Reinforcement in plates are members of the LiraReinforcementInPlatesEnum enumeration. By default, the results of all reinforcement are requested.
+   get ReinforcementData() -> ILiraLongsArray*   // Reinforcement data categories for which analysis results are requested (members of the LiraReinforcementDataEnum enumeration). By default, the results of all reinforcement are requested.
+   get AssemblageStages() -> ILiraLongsArray*   // Numbers of assemblage stages on which analysis results are requested. By default all stages results are requested.
+
+## dispatch ILiraSelectedReinforcementResponse  -- Interface for accessing the selected reinforcement of finite elements
+   GetSectionCount(I4 Element) -> I4   // Returns number of points on the finite element where analysis results are available (number of design sections). Element parameter is the number of the finite element. Element numbers are 1-based
+   GetFamily(I4 Element) -> LiraElementFamilyEnum   // Returns family of the finite element as a member of LiraElementFamilyEnum enumeration. Element parameter is the number of the finite element. Element numbers are 1-based
+   GetBarAU1(I4 Element, I4 CS, LiraReinforcementDataEnum RD, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns longitudinal reinforcement AU1 (cm2) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. RD parameter is the reinforcement category as a member of LiraReinforcem
+   GetBarAU2(I4 Element, I4 CS, LiraReinforcementDataEnum RD, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns longitudinal reinforcement AU2 (cm2) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. RD parameter is the reinforcement category as a member of LiraReinforcem
+   GetBarAU3(I4 Element, I4 CS, LiraReinforcementDataEnum RD, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns longitudinal reinforcement AU3 (cm2) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. RD parameter is the reinforcement category as a member of LiraReinforcem
+   GetBarAU4(I4 Element, I4 CS, LiraReinforcementDataEnum RD, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns longitudinal reinforcement AU4 (cm2) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. RD parameter is the reinforcement category as a member of LiraReinforcem
+   GetBarAS1(I4 Element, I4 CS, LiraReinforcementDataEnum RD, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns longitudinal reinforcement AS1 (cm2) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. RD parameter is the reinforcement category as a member of LiraReinforcem
+   GetBarAS2(I4 Element, I4 CS, LiraReinforcementDataEnum RD, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns longitudinal reinforcement AS2 (cm2) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. RD parameter is the reinforcement category as a member of LiraReinforcem
+   GetBarAS3(I4 Element, I4 CS, LiraReinforcementDataEnum RD, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns longitudinal reinforcement AS3 (cm2) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. RD parameter is the reinforcement category as a member of LiraReinforcem
+   GetBarAS4(I4 Element, I4 CS, LiraReinforcementDataEnum RD, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns longitudinal reinforcement AS4 (cm2) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. RD parameter is the reinforcement category as a member of LiraReinforcem
+   GetBarPERC(I4 Element, I4 CS, LiraReinforcementDataEnum RD, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns percentage of reinforcement for the section (%) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. RD parameter is the reinforcement category as a member of Lir
+   GetBarASW1(I4 Element, I4 CS, LiraReinforcementDataEnum RD, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns vertical transverse reinforcement ASW1 (cm2) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. RD parameter is the reinforcement category as a member of LiraRe
+   GetBarASW2(I4 Element, I4 CS, LiraReinforcementDataEnum RD, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns vertical transverse reinforcement ASW2 (cm2) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. RD parameter is the reinforcement category as a member of LiraRe
+   GetBarCrackSHORT(I4 Element, I4 CS, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns short-term crack propagation width, millimeters (mm) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. Symmetric parameter must be true to get symmetry data an
+   GetBarCrackLONG(I4 Element, I4 CS, I4 Symmetric, I4 Stage, I4* pErr) -> R4   // Returns long-term crack propagation width,  millimeters (mm) for the specified bar finite element. Element parameter is the number of the finite element. CS parameter is the number of the design section. Symmetric parameter must be true to get symmetry data an
+   GetPlateAS1(I4 Element, LiraReinforcementDataEnum RD, I4 Stage, I4* pErr) -> R4   // Returns longitudinal reinforcement AS1 (cm2 / r.m.) for the specified plate finite element. Element parameter is the number of the finite element. RD parameter is the reinforcement category as a member of LiraReinforcementDataEnum enumeration. Stage parameter 
+   GetPlateAS2(I4 Element, LiraReinforcementDataEnum RD, I4 Stage, I4* pErr) -> R4   // Returns longitudinal reinforcement AS2 (cm2 / r.m.) for the specified plate finite element. Element parameter is the number of the finite element. RD parameter is the reinforcement category as a member of LiraReinforcementDataEnum enumeration. Stage parameter 
+   GetPlateAS3(I4 Element, LiraReinforcementDataEnum RD, I4 Stage, I4* pErr) -> R4   // Returns longitudinal reinforcement AS3 (cm2 / r.m.) for the specified plate finite element. Element parameter is the number of the finite element. RD parameter is the reinforcement category as a member of LiraReinforcementDataEnum enumeration. Stage parameter 
+   GetPlateAS4(I4 Element, LiraReinforcementDataEnum RD, I4 Stage, I4* pErr) -> R4   // Returns longitudinal reinforcement AS4 (cm2 / r.m.) for the specified plate finite element. Element parameter is the number of the finite element. RD parameter is the reinforcement category as a member of LiraReinforcementDataEnum enumeration. Stage parameter 
+   GetPlatePercX(I4 Element, I4 Stage, I4* pErr) -> R4   // Returns percentage of reinforcement in local X axis direction (%) for the specified plate finite element. Element parameter is the number of the finite element. Stage parameter is the number of the assemblage stage. Element is 1-based
+   GetPlatePercY(I4 Element, I4 Stage, I4* pErr) -> R4   // Returns percentage of reinforcement in local Y axis direction (%) for the specified plate finite element. Element parameter is the number of the finite element. Stage parameter is the number of the assemblage stage. Element is 1-based
+   GetPlatePercXY(I4 Element, I4 Stage, I4* pErr) -> R4   // Returns percentage of reinforcement in local X and Y axis directions (%) for the specified plate finite element. Element parameter is the number of the finite element. Stage parameter is the number of the assemblage stage. Element is 1-based
+   GetPlateASW1(I4 Element, LiraReinforcementDataEnum RD, I4 Stage, I4* pErr) -> R4   // Returns transverse reinforcement ASW1 (cm2 / r.m.) for the specified plate finite element. Element parameter is the number of the finite element. RD parameter is the reinforcement category as a member of LiraReinforcementDataEnum enumeration. Stage parameter i
+   GetPlateASW2(I4 Element, LiraReinforcementDataEnum RD, I4 Stage, I4* pErr) -> R4   // Returns transverse reinforcement ASW2 (cm2 / r.m.) for the specified plate finite element. Element parameter is the number of the finite element. RD parameter is the reinforcement category as a member of LiraReinforcementDataEnum enumeration. Stage parameter i
+   GetPlateCrackSHORT(I4 Element, I4 Stage, I4* pErr) -> R4   // Returns short-term crack propagation width (mm) for the specified plate finite element. Element parameter is the number of the finite element. Stage parameter is the number of the assemblage stage. Element is 1-based
+   GetPlateCrackLONG(I4 Element, I4 Stage, I4* pErr) -> R4   // Returns long-term crack propagation width (mm) for the specified plate finite element. Element parameter is the number of the finite element. Stage parameter is the number of the assemblage stage. Element is 1-based
+   get ElementNumbers() -> ILiraLongsArray*   // Returns element numbers.
+
+## enum LiraReinforcementDataEnum  -- Reinforcement data categories
+   kLiraReinforcementData_Total = 1
+   kLiraReinforcementData_Strength = 2
+   kLiraReinforcementData_Torsion = 3
+   kLiraReinforcementData_Torsion_1K = 4
+   kLiraReinforcementData_Torsion_2K = 5
+   kLiraReinforcementData_Torsion_3K = 6
+   kLiraReinforcementData_FR = 7
+   kLiraReinforcementData_PrC = 8
+
+## dispatch ILiraMainDataRequest  -- Interface for requesting the main data of document
+   get DocumentName() -> BSTR   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   put DocumentName(BSTR p0) -> VOID   // The name of LIRA-FEM document whose analysis results are requested. The name must not contain path and extension
+   get SuperElement() -> I4   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+   put SuperElement(I4 p0) -> VOID   // Super-element whose analysis results are requested. This number is the 1-based number of the finite element in LIRA-FEM document. Default is 0 which corresponds the main model
+
+## dispatch ILiraMainDataResponse  -- Interface for accessing the main data of document
+   GetNodeCount() -> I4   // Returns number of nodes of document
+   GetElementCount() -> I4   // Returns number of elements of document
+   GetHistoryCount() -> I4   // Returns number of histories of document
+
+## enum LiraDirectionEnum  -- 
+   kLiraDirection_X = 1
+   kLiraDirection_Y = 2
+   kLiraDirection_Z = 3
+   kLiraDirection_Ux = 4
+   kLiraDirection_Uy = 5
+   kLiraDirection_Uz = 6
+   kLiraDirection_W = 7
+   kLiraDirection_T = 15
+
+## enum LiraForceEnum  -- 
+   kLiraForce_Undefined = 0
+   kLiraForce_BarN = 1
+   kLiraForce_BarMx = 2
+   kLiraForce_BarMy = 3
+   kLiraForce_BarQz = 4
+   kLiraForce_BarMz = 5
+   kLiraForce_BarQy = 6
+   kLiraForce_BarRy = 7
+   kLiraForce_BarRz = 8
+   kLiraForce_BarBw = 9
+   kLiraForce_BarTw = 10
+   kLiraForce_PlateNx = 11
+   kLiraForce_PlateNy = 12
+   kLiraForce_PlateNz = 13
+   kLiraForce_PlateTxy = 14
+   kLiraForce_PlateTxz = 15
+   kLiraForce_PlateMx = 16
+   kLiraForce_PlateMy = 17
+   kLiraForce_PlateMxy = 18
+   kLiraForce_PlateQx = 19
+   kLiraForce_PlateQy = 20
+   kLiraForce_PlateRz = 21
+   kLiraForce_SolidNx = 22
+   kLiraForce_SolidNy = 23
+   kLiraForce_SolidNz = 24
+   kLiraForce_SolidTxy = 25
+   kLiraForce_SolidTxz = 26
+   kLiraForce_SolidTyz = 27
+   kLiraForce_SpecElementN = 28
+   kLiraForce_SpecElementNx = 29
+   kLiraForce_SpecElementNy = 30
+   kLiraForce_SpecElementNz = 31
+   kLiraForce_SpecElementMx = 32
+   kLiraForce_SpecElementMy = 33
+   kLiraForce_SpecElementMz = 34
+   kLiraForce_SpecElementQy = 35
+   kLiraForce_SpecElementQz = 36
+   kLiraForce_SpecElementRx = 37
+   kLiraForce_SpecElementRy = 38
+   kLiraForce_SpecElementRz = 39
+   kLiraForce_SpecElementRux = 40
+   kLiraForce_SpecElementRuy = 41
+   kLiraForce_SpecElementRuz = 42
+   kLiraForce_Spec_58_59_Qz = 43
+   kLiraForce_Spec_58_59_Ny = 44
+   kLiraForce_Spec_58_59_Qx = 45
+   kLiraForce_Spec_310_N = 46
+   kLiraForce_Spec_310_My = 47
+   kLiraForce_Spec_310_Mx = 48
+   kLiraForce_Spec_310_Qz = 49
+   kLiraForce_Spec_310_Mz = 50
+   kLiraForce_Spec_310_Qy = 51
+   kLiraForce_Spec_264_N = 52
+   kLiraForce_Spec_264_Qz = 53
+   kLiraForce_Spec_264_Qy = 54
+
+## enum LiraFragmLoadForceEnum  -- 
+   kLiraFragmLoadForce_RX = 1
+   kLiraFragmLoadForce_RY = 2
+   kLiraFragmLoadForce_RZ = 3
+   kLiraFragmLoadForce_RUX = 4
+   kLiraFragmLoadForce_RUY = 5
+   kLiraFragmLoadForce_RUZ = 6
+   kLiraFragmLoadForce_RBW = 7
+
+## enum LiraPunchLoadForceEnum  -- 
+   kLiraPunchLoadForce_N = 1
+   kLiraPunchLoadForce_MX = 2
+   kLiraPunchLoadForce_MY = 3
+   kLiraPunchLoadForce_QX = 4
+   kLiraPunchLoadForce_QY = 5
+   kLiraPunchLoadForce_MZ = 6
+
+## enum LiraLimitStateForcesEnum  -- 
+   kLiraLimitStateForces_UltimateFull = 1
+   kLiraLimitStateForces_UltimateLongTerm = 2
+   kLiraLimitStateForces_ServiceabilityFull = 3
+   kLiraLimitStateForces_ServiceabilityLongTerm = 4
+
+## enum LiraReinforcementInBarsEnum  -- 
+   kLiraReinforcementInBars_AU1 = 1
+   kLiraReinforcementInBars_AU2 = 2
+   kLiraReinforcementInBars_AU3 = 3
+   kLiraReinforcementInBars_AU4 = 4
+   kLiraReinforcementInBars_AS1 = 5
+   kLiraReinforcementInBars_AS2 = 6
+   kLiraReinforcementInBars_AS3 = 7
+   kLiraReinforcementInBars_AS4 = 8
+   kLiraReinforcementInBars_PERC = 9
+   kLiraReinforcementInBars_ASW1 = 10
+   kLiraReinforcementInBars_ASW2 = 11
+   kLiraReinforcementInBars_CrackSHORT = 12
+   kLiraReinforcementInBars_CrackLONG = 13
+
+## enum LiraReinforcementInPlatesEnum  -- 
+   kLiraReinforcementInPlates_AS1 = 1
+   kLiraReinforcementInPlates_AS2 = 2
+   kLiraReinforcementInPlates_AS3 = 3
+   kLiraReinforcementInPlates_AS4 = 4
+   kLiraReinforcementInPlates_PERCX = 5
+   kLiraReinforcementInPlates_PERCY = 6
+   kLiraReinforcementInPlates_PERCXY = 7
+   kLiraReinforcementInPlates_ASW1 = 8
+   kLiraReinforcementInPlates_ASW2 = 9
+   kLiraReinforcementInPlates_CrackSHORT = 10
+   kLiraReinforcementInPlates_CrackLONG = 11
+
+## enum LiraReinforcementErrorEnum  -- 
+   kLiraReinforcementError_None = 0
+   kLiraReinforcementError_DataNotProvided = 200
+   kLiraReinforcementError_SecNotAdequate = -1
+   kLiraReinforcementError_25 = -25
+   kLiraReinforcementError_21 = -21
+   kLiraReinforcementError_33 = -33
+   kLiraReinforcementError_35 = -35
+   kLiraReinforcementError_57 = -57
+   kLiraReinforcementError_71Warn = -71
+   kLiraReinforcementError_67Warn = -67
+   kLiraReinforcementError_90 = -90
+   kLiraReinforcementError_261 = -261
+   kLiraReinforcementError_1647 = -1647
+
+## coclass LiraLoadCaseDisplacementsRequest  -- Request object for accessing displacements in load cases
+
+## coclass LiraLoadCaseDisplacementsResponse  -- Object for accessing displacements in load cases
+
+## coclass LiraLoadCaseForcesRequest  -- Request object for accessing forces and stresses from load cases
+
+## coclass LiraLoadCaseForcesResponse  -- Object for accessing displacements in load cases
+
+## coclass LiraLoadCombinationDisplacementsRequest  -- Request object for accessing displacements from load combinations (DCL)
+
+## coclass LiraLoadCombinationDisplacementsResponse  -- Object for accessing displacements from load combinations
+
+## coclass LiraLoadCombinationForcesRequest  -- Request object for accessing forces from load combinations (DCL)
+
+## coclass LiraLoadCombinationForcesResponse  -- Object for accessing forces from load combinations
+
+## coclass LiraLongsArray  -- Helper array of long integers
+
+## coclass LiraDoublesArray  -- Helper array of double-precision floating point numbers
+
+## coclass LiraLoadCaseInfo  -- Information about a load case
+
+## coclass LiraLoadCaseInfos  -- A collection of information about load cases
+
+## coclass LiraLoadCombinationInfo  -- Information about a load combination (DCL)
+
+## coclass LiraLoadCombinationInfos  -- A collection of information about a load cases
+
+## coclass LiraLoadHistoryInfo  -- Information about a non-linear load history
+
+## coclass LiraLoadHistoryInfos  -- A collection of information about non-linear load histories
+
+## coclass LiraFragmLoadsRequest  -- Request object for accessing loads on fragment of finite element model from load cases
+
+## coclass LiraFragmLoadsResponse  -- Object for accessing loads on fragment of finite element model from load cases
+
+## coclass LiraPunchLoadsRequest  -- Request object for accessing loads on punching shear contours from load cases
+
+## coclass LiraPunchLoadsResponse  -- Object for accessing loads on punching shear contours from load cases
+
+## coclass LiraDesignCombinationForcesRequest  -- Request object for accessing forces from design combinations of forces (DCF)
+
+## coclass LiraDesignCombinationForcesResponse  -- Object for accessing forces from design combinations of forces (DCF)
+
+## coclass LiraPeriodsOfVibrationsRequest  -- Request object for accessing periods of vibrations of the finite element model
+
+## coclass LiraPeriodsOfVibrationsResponse  -- 0bject for accessing periods of vibrations of the finite element model
+
+## coclass LiraSelectedReinforcementRequest  -- Request object for accessing the selected reinforcement of finite elements
+
+## coclass LiraSelectedReinforcementResponse  -- Object for accessing the selected reinforcement of finite elements
+
+## coclass LiraMainDataRequest  -- Request object for accessing the main data of document
+
+## coclass LiraMainDataResponse  -- Object for accessing the main data of document
