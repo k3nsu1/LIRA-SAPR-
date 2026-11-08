@@ -1,0 +1,154 @@
+{
+ "source": "ЛИРА+ Записка.html (10.10.2026), расчёты по нормам: runCalc на этих входных данных в Node.js",
+ "cases": [
+  {
+   "id": "windN",
+   "inputs": {
+    "wn_city": "Караганда",
+    "wn_terr": "III",
+    "wn_h": 7.8,
+    "wn_l1": 72,
+    "wn_l2": 41.5
+   },
+   "keys": {
+    "qp": 56.6,
+    "vb": 24,
+    "district": "II",
+    "h": 7.8,
+    "wD1": 39.62,
+    "wE1": 28.3,
+    "wD2": 39.62,
+    "wE2": 28.3
+   }
+  },
+  {
+   "id": "windN",
+   "inputs": {
+    "wn_city": "Астана",
+    "wn_terr": "II",
+    "wn_h": 12,
+    "wn_l1": 30,
+    "wn_l2": 18,
+    "wn_roof": "Крыша с парапетом (hp/h=0,05)"
+   },
+   "keys": {
+    "qp": 192.4,
+    "vb": 35,
+    "district": "IV",
+    "h": 12,
+    "wD1": 145.45,
+    "wE1": 96.2,
+    "wD2": 138.53,
+    "wE2": 96.2
+   }
+  },
+  {
+   "id": "bagN",
+   "inputs": {
+    "bn_city": "Караганда",
+    "bn_a1": 0,
+    "bn_aup": 30,
+    "bn_h": 3.5,
+    "bn_b1": 20,
+    "bn_b2": 12,
+    "bn_bup": 10
+   },
+   "keys": {
+    "snowRoof": 122.3,
+    "snowBag": 786.4,
+    "snowAccBag": 326.2,
+    "sk": 1.5
+   }
+  },
+  {
+   "id": "bagN",
+   "inputs": {
+    "bn_city": "Уральск",
+    "bn_a1": 20,
+    "bn_aup": 5,
+    "bn_h": 1,
+    "bn_b1": 48,
+    "bn_b2": 3,
+    "bn_bup": 24
+   },
+   "keys": {
+    "snowRoof": 146.8,
+    "snowBag": 203.9,
+    "snowAccBag": 203.9,
+    "sk": 1.8
+   }
+  },
+  {
+   "id": "multiN",
+   "inputs": {
+    "mn_city": "Астана",
+    "mn_L": 24,
+    "mn_a1": 5,
+    "mn_a2": 10,
+    "mn_a3": 12,
+    "mn_a4": 5,
+    "mn_l2": 12,
+    "mn_l3": 12,
+    "mn_h": 1.2
+   },
+   "keys": {
+    "snowRoof": 167.2,
+    "snowAcc": 334.3,
+    "snowDrift": 244.5,
+    "sk": 1.5,
+    "span": 24
+   }
+  },
+  {
+   "id": "duo",
+   "inputs": {
+    "duo_city": "Караганда",
+    "duo_L": 27,
+    "duo_a1": 20,
+    "duo_a2": 40
+   },
+   "keys": {
+    "snowRoof": 122.3,
+    "snowAcc": 244.6,
+    "sk": 1.5,
+    "span": 27
+   }
+  },
+  {
+   "id": "arch",
+   "inputs": {
+    "ar_city": "Караганда",
+    "ar_terr": "III",
+    "ar_h": 0,
+    "ar_f": 11.87,
+    "ar_d": 27,
+    "ar_l": 65.5
+   },
+   "keys": {
+    "qp": 66.7,
+    "Amax": 47.09,
+    "Amin": 47.09,
+    "B": -76.04,
+    "C": -26.68
+   }
+  },
+  {
+   "id": "arch",
+   "inputs": {
+    "ar_city": "Алматы",
+    "ar_terr": "II",
+    "ar_h": 4,
+    "ar_f": 6,
+    "ar_d": 24,
+    "ar_l": 40
+   },
+   "keys": {
+    "qp": 86.4,
+    "Amax": 27.48,
+    "Amin": 2.07,
+    "B": -82.08,
+    "C": -34.56
+   }
+  }
+ ]
+}
