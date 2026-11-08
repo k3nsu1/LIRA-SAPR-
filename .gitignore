@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+site/
+.claude/settings.local.json
+.DS_Store
+Thumbs.db
+Desktop.ini
+spikes/out/
+tests/live/_work/
+dist/
