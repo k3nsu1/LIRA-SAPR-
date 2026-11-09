@@ -26,6 +26,7 @@ class Frame:
     displacement: dict[int, tuple[float, float, float]]
     notes: list[Note] = field(default_factory=list)
     stiffness_of: dict[int, int] = field(default_factory=dict)
+    ground: set[int] = field(default_factory=set)  # restrained and one-node support nodes
 
 
 def _xyz(rows: list[dict], what: str) -> dict[int, tuple[float, float, float]]:
@@ -80,7 +81,10 @@ def read_frame(
         for r in adapter.read_table(path, "Elements_Stiffnesses")
         if len(r) > 1 and r[0] is not None and r[1] is not None
     }
-    return Frame(path, mesh.nodes, mesh.elements, found, held, disp, list(mesh.notes), stiffness_of)
+    ground = pm.supports(mesh.nodes, mesh.elements, mesh.restrained, columns=False)
+    return Frame(
+        path, mesh.nodes, mesh.elements, found, held, disp, list(mesh.notes), stiffness_of, ground
+    )
 
 
 def _ratio(r: float) -> float | None:
@@ -106,7 +110,7 @@ def compute(frame: Frame) -> dict[str, Any]:
     if blind:
         notes.append(
             f"Пролётов без промежуточных узлов: {len(blind)} (например, элементы "
-            f"{', '.join(str(frame.members[d.span.member].elements[0]) for d in blind[:5])}): "
+            f"{', '.join(map(str, _blind_examples(frame, blind)))}): "
             "прогиб внутри одного конечного элемента по узлам не определяется — разбейте стержень "
             "в ЛИРЕ."
         )
@@ -121,6 +125,20 @@ def compute(frame: Frame) -> dict[str, Any]:
         "blind_spans": len(blind),
         "notes": notes,
     }
+
+
+def _blind_examples(frame: Frame, blind: list[pm.SpanDeflection], count: int = 5) -> list[int]:
+    """The element of each span with no inner node (a span of one bar), without repeats."""
+    out: list[int] = []
+    for d in blind:
+        m = frame.members[d.span.member]
+        i, j = (m.nodes.index(n) for n in d.span.nodes[:2])
+        el = m.elements[min(i, j)]
+        if el not in out:
+            out.append(el)
+        if len(out) == count:
+            break
+    return out
 
 
 def span_row(frame: Frame, d: pm.SpanDeflection) -> dict[str, Any]:
@@ -255,7 +273,9 @@ def pictures(frame: Frame, out_dir: Path, stem: str, source: str, view: str = "i
 
     bars = {el: frame.elements[el][1] for m in frame.members for el in m.elements}
     used = {n for ab in bars.values() for n in ab}
-    supports = {n for n in frame.held if n in used}
+    # On the scheme only what holds the model: restraints and one-node supports; not the
+    # tops of columns, where a beam rests and its span is cut.
+    supports = {n for n in frame.ground if n in used}
     found, _ = pm.spans(frame.members, frame.nodes, frame.held)
     read = [pm.span_deflection(sp, frame.nodes, frame.displacement) for sp in found]
     spans = [(d.span.nodes, d.ratio) for d in read if d.node is not None and d.ratio == d.ratio]

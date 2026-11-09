@@ -41,8 +41,12 @@ def model(adapter: FakeAdapter, dynamic: bool = False) -> None:
     }
 
     def node_displacements(path, ns, cases):
+        ns = ns or nodes
         rows = [
-            {"node": n, "case": c} | dict(zip(DOFS, disp[c][n], strict=True)) for c in K for n in ns
+            {"node": n, "case": c} | dict(zip(DOFS, disp[c][n], strict=True))
+            for c in K
+            if cases is None or c in cases
+            for n in ns
         ]
         if dynamic:
             rows += [{"node": n, "case": 9, "shape": "1", "Z": 0.1} for n in ns]
@@ -140,3 +144,66 @@ async def test_tools_answer_and_write_the_tables(tmp_path):
     assert f["ok"] and p.structured_content["all_ok"]
     assert both.is_error and "exactly one" in both.content[0].text
     assert bad.is_error and "needs nodes, l, b, d and R" in bad.content[0].text
+
+
+def test_a_load_on_a_small_part_of_a_large_model_is_found_in_the_rsn():
+    """K1.7: a canopy load (case 3) moves only a few nodes of a large slab model; the even
+    sample of nodes missed them and the canopy's dead load got multiplier 0."""
+    adapter = FakeAdapter()
+    nodes = list(range(1, 3001))
+    step = len(nodes) / rpz.SAMPLE
+    even = {nodes[int(i * step)] for i in range(rpz.SAMPLE)}
+    canopy = [n for n in nodes if n not in even][-4:]
+    rng = np.random.default_rng(3)
+    disp = {
+        1: {n: rng.normal(size=6) for n in nodes},
+        2: {n: rng.normal(size=6) for n in nodes},
+        3: {n: (rng.normal(size=6) if n in canopy else np.zeros(6)) for n in nodes},
+    }
+    k = {1: 1.0, 2: 0.85, 3: 1.0}
+    adapter.docs["big.lir"] = {
+        "title": "big",
+        "path": "big.lir",
+        "type": 5,
+        "modified": False,
+        "tables": {
+            "Nodes_Coordinates": [[n, n, 0, 0] for n in nodes],
+            "LoadCases": [
+                [1, "Вес", None, "Постоянное"],
+                [2, "Оборудование", None, "Постоянное"],
+                [3, "Кровля навеса", None, "Постоянное"],
+            ],
+            "Stiffnesses": [],
+            "Elements_Stiffnesses": [],
+        },
+    }
+    adapter.active = "big.lir"
+    adapter.node_displacements = lambda path, ns, cases: [
+        {"node": n, "case": c} | dict(zip(DOFS, disp[c][n], strict=True))
+        for c in (cases or k)
+        for n in (ns or nodes)
+    ]
+    adapter.combination_displacements = lambda path, ns, combos: [
+        {"node": n, "combination": 1}
+        | dict(zip(DOFS, sum(k[c] * disp[c][n] for c in k), strict=True))
+        for n in ns
+    ]
+    adapter.load_combinations = lambda path: {
+        "code": "SP RK EN",
+        "combinations": [
+            {"number": 1, "name": "РСН1", "formula": 1, "special": False, "seismic": False}
+        ],
+    }
+    (rsn,) = rpz.model_facts(adapter, "big.lir")["combinations"]
+    assert {m["case"]: m["multiplier"] for m in rsn["make_up"]} == {1: 1.0, 2: 0.85, 3: 1.0}
+    assert rsn["exact"]
+
+
+def test_the_make_up_is_written_with_signs_not_plus_minus():
+    make_up = [
+        {"case": 1, "multiplier": 1.0},
+        {"case": 2, "multiplier": 0.85},
+        {"case": 3, "multiplier": -0.5},
+    ]
+    assert rpz.make_up_text(make_up) == "1·L1 + 0,85·L2 − 0,5·L3"
+    assert rpz.make_up_text([{"case": 4, "multiplier": -1.0}]) == "−1·L4"
