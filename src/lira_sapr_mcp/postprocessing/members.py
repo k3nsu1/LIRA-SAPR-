@@ -171,15 +171,17 @@ def supports(
     restrained: set[int],
     groups: list[set[int]] | None = None,
     on: set[int] | None = None,
+    columns: bool = True,
 ) -> set[int]:
-    """Nodes a beam rests on: restrained, with a one-node support, with a column going down,
-    tied by a rigid body or coupled group to such a node, or of an element in ``on``."""
+    """Nodes a beam rests on: restrained, with a one-node support, with a column going down
+    (unless ``columns`` is False: then only what holds the model), tied by a rigid body or
+    coupled group to such a node, or of an element in ``on``."""
     held = set(restrained)
     for el, (fe, ns) in elements.items():
         t = fe % 100
         if len(ns) == 1 and t in ONE_NODE_SUPPORTS:
             held.add(ns[0])
-        elif is_bar(fe) and len(ns) == 2:
+        elif columns and is_bar(fe) and len(ns) == 2:
             a, b = (np.asarray(nodes[n], dtype=float) for n in ns)
             d = b - a
             length = float(np.linalg.norm(d))

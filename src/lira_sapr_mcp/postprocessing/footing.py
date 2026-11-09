@@ -107,15 +107,36 @@ class Fit:
 
 
 def fit_combination(
-    by_case: dict[int, np.ndarray], combination: np.ndarray, tolerance: float = 1e-6
+    by_case: dict[int, np.ndarray],
+    combination: np.ndarray,
+    tolerance: float = 1e-6,
+    share: float = 1e-4,
 ) -> Fit:
     """``by_case``: per load case, the displacements of the sample nodes (any shape, the same
-    for all); ``combination``: those of the RSN. Multipliers below ``tolerance`` are zero."""
+    for all); ``combination``: those of the RSN. A load case whose part of the RSN is below
+    ``share`` of the RSN's largest displacement is not in it (its multiplier is the noise of
+    the rounded results: K1.7 gave -0.0001 for a canopy load the RSN did not hold); the others
+    are fitted again without it. Multipliers below ``tolerance`` are zero."""
     cases = sorted(by_case)
     a = np.column_stack([np.ravel(by_case[c]) for c in cases])
     y = np.ravel(combination)
-    k, *_ = np.linalg.lstsq(a, y, rcond=None)
+    largest = float(np.max(np.abs(y))) if y.size else 0.0
+    scale = largest if largest > 0 else 1.0
+    # Each column scaled to its largest value: a load case that moves the sample little (a
+    # canopy load seen at slab nodes) keeps its weight in the solution.
+    norm = np.max(np.abs(a), axis=0) if a.size else np.ones(len(cases))
+    norm = np.where(norm > 0, norm, 1.0)
+    keep = np.ones(len(cases), dtype=bool)
+    k = np.zeros(len(cases))
+    for _ in range(2):
+        k = np.zeros(len(cases))
+        if keep.any():
+            part, *_ = np.linalg.lstsq(a[:, keep] / norm[keep], y, rcond=None)
+            k[keep] = part / norm[keep]
+        small = keep & (np.abs(k) * norm < share * scale)
+        if not small.any():
+            break
+        keep &= ~small
     k = np.where(np.abs(k) < tolerance, 0.0, k)
-    scale = float(np.max(np.abs(y))) if y.size and np.max(np.abs(y)) > 0 else 1.0
     residual = float(np.max(np.abs(a @ k - y))) / scale if y.size else 0.0
     return Fit(cases, [float(v) for v in k], residual)

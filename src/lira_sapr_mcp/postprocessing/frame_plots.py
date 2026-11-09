@@ -131,6 +131,30 @@ def deformed(
     return _save(fig, path), scale
 
 
+LABEL_STEP = 12  # points between labels of spans drawn at nearly the same place
+NEAR = 0.04  # of the drawing's size: labels closer than this are stacked
+
+
+def _label_places(
+    nodes: dict[int, tuple[float, float, float]],
+    spans: list[tuple[tuple[int, ...], float]],
+    view: str,
+    marked: int,
+) -> list[tuple[np.ndarray, int]]:
+    """Where to sign the ``marked`` worst spans: the middle of each in the drawing, and how
+    many labels up to shift it so that it does not cover a label signed near it."""
+    if not spans:
+        return []
+    every = project(np.array([nodes[n] for row, _ in spans for n in row]), view)
+    size = float(np.max(np.ptp(every, axis=0))) or 1.0
+    places: list[tuple[np.ndarray, int]] = []
+    for row, _ in sorted(spans, key=lambda s: s[1])[:marked]:
+        mid = project(np.array([nodes[n] for n in row]), view).mean(axis=0)
+        shift = sum(1 for p, _ in places if np.linalg.norm(p - mid) < NEAR * size)
+        places.append((mid, shift))
+    return places
+
+
 def spans_map(
     nodes: dict[int, tuple[float, float, float]],
     bars: dict[int, tuple[int, int]],
@@ -149,10 +173,14 @@ def spans_map(
         band = next(b for b in SPAN_BANDS if b[0] <= ratio < b[1])
         pts = project(np.array([nodes[n] for n in row]), view)
         ax.plot(pts[:, 0], pts[:, 1], color=band[2], linewidth=2.4)
-    for k, (row, ratio) in enumerate(sorted(spans, key=lambda s: s[1])[:marked], start=1):
-        mid = project(np.array([nodes[n] for n in row]), view).mean(axis=0)
+    for k, (mid, shift) in enumerate(_label_places(nodes, spans, view, marked), start=1):
+        ratio = sorted(s[1] for s in spans)[k - 1]
         ax.annotate(
-            f"{k}: L/f = {ratio:.0f}", mid, fontsize=9, xytext=(6, 6), textcoords="offset points"
+            f"{k}: L/f = {ratio:.0f}",
+            mid,
+            fontsize=9,
+            xytext=(6, 6 + LABEL_STEP * shift),
+            textcoords="offset points",
         )
     for _, _, c, label in SPAN_BANDS:
         ax.plot([], [], color=c, linewidth=3, label=label)
