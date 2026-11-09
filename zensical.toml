@@ -15,7 +15,7 @@ nav = [
   { "Решения" = [ "decisions/0001-architecture.md", "decisions/0002-python-stack.md", "decisions/0003-postprocessing.md", "decisions/0004-sapfir.md", "decisions/0005-reports.md" ] },
   { "Исследования" = [ "research/lira-api.md" ] },
   "TASKS.md",
-  { "История" = [ "history/stage-1.md", "history/stage-2.md", "history/stage-3.md", "history/stage-4.md", "history/stage-5.md", "history/stage-6.md", "history/debt-2026-10.md", "history/owner-model-2026-11.md" ] },
+  { "История" = [ "history/stage-1.md", "history/stage-2.md", "history/stage-3.md", "history/stage-4.md", "history/stage-5.md", "history/stage-6.md", "history/stage-k1.md", "history/debt-2026-10.md", "history/owner-model-2026-11.md" ] },
 ]
 
 [project.theme]
