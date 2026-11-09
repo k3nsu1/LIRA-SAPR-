@@ -17,6 +17,7 @@ PEAK = 10  # and, per static load case, the nodes it moves most
 DOFS = ("X", "Y", "Z", "UX", "UY", "UZ")
 GOOD_FIT = 1e-6  # relative residual below which the multipliers are exact
 FORCES = ("RX", "RY", "RZ", "RUX", "RUY", "RUZ")
+KN_PER_TF = 9.80665  # LIRA's results API gives forces in tf and moments in tf·m, always
 
 
 def _rows(adapter: Any, path: str, table: str) -> list[list]:
@@ -154,12 +155,13 @@ def reactions(
     combination: int | None,
 ) -> dict[int, dict[str, float]]:
     """On the COM thread: per node, the loads the model's fragment passes to it (LIRA's loads
-    on fragment), for a load case or an RSN (its fitted multipliers times the load cases')."""
+    on fragment), for a load case or an RSN (its fitted multipliers times the load cases'),
+    in kN and kN·m: LIRA's results API answers in tf and tf·m whatever units LIRA shows."""
     path = open_model(adapter, model)
     if combination is None:
         rows = adapter.fragment_loads(path, nodes, [case])
         return {
-            int(r["node"]): {k: float(r.get(k, 0.0)) for k in FORCES}
+            int(r["node"]): {k: float(r.get(k, 0.0)) * KN_PER_TF for k in FORCES}
             for r in rows
             if "shape" not in r
         }
@@ -182,7 +184,7 @@ def reactions(
             continue
         acc = out.setdefault(int(r["node"]), dict.fromkeys(FORCES, 0.0))
         for f in FORCES:
-            acc[f] += k[int(r["case"])] * float(r.get(f, 0.0))
+            acc[f] += k[int(r["case"])] * float(r.get(f, 0.0)) * KN_PER_TF
     return out
 
 

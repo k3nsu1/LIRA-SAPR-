@@ -36,8 +36,13 @@ def model(adapter: FakeAdapter, dynamic: bool = False) -> None:
     }
     adapter.active = "f.lir"
     disp = {c: {n: rng.normal(size=6) for n in nodes} for c in K}
+    # LIRA's results API answers in tf and tf·m: these are the kN below divided by g
     loads = {
-        c: {n: np.array([0, 0, -100.0 * c * n, 10.0 * c, 5.0 * c, 0]) for n in (1, 2)} for c in K
+        c: {
+            n: np.array([0, 0, -100.0 * c * n, 10.0 * c, 5.0 * c, 0]) / rpz.KN_PER_TF
+            for n in (1, 2)
+        }
+        for c in K
     }
 
     def node_displacements(path, ns, cases):
@@ -207,3 +212,17 @@ def test_the_make_up_is_written_with_signs_not_plus_minus():
     ]
     assert rpz.make_up_text(make_up) == "1·L1 + 0,85·L2 − 0,5·L3"
     assert rpz.make_up_text([{"case": 4, "multiplier": -1.0}]) == "−1·L4"
+
+
+def test_loads_on_fragment_in_tf_are_checked_in_kn():
+    """K1.7: the footing check took LIRA's tf for kN, so pressures came out 9.8 times low."""
+    adapter = FakeAdapter()
+    model(adapter)
+    adapter.fragment_loads = lambda path, ns, cases: [
+        {"node": n, "case": 1, "RZ": -100.0, "RUX": 2.0, "RUY": 1.0} for n in ns
+    ]  # 100 tf down, as LIRA's API answers
+    forces = rpz.reactions(adapter, "f.lir", [1], 1, None)
+    assert forces[1]["RZ"] == pytest.approx(-980.665) and forces[1]["RUX"] == pytest.approx(19.6133)
+    (f,) = rpz.footing_checks([{"nodes": [1], "l": 2, "b": 2, "d": 1.5, "R": 250}], forces)
+    assert f["N_kN"] == pytest.approx(980.7) and f["p_kPa"] == pytest.approx(275.2, abs=0.1)
+    assert not f["ok"]  # 275 kPa > R = 250; with tf read as kN it was 55 kPa and "ok"
