@@ -57,6 +57,11 @@ def _finding(what: str, ru: str, items: list, ok: bool = False) -> dict[str, Any
     return out
 
 
+def _not_checked(what: str, ru: str, why: str) -> dict[str, Any]:
+    """A check that could not run: neither passed nor failed."""
+    return {"check": what, "ok": None, "ru": ru, "not_checked": why}
+
+
 def check_model(adapter: Any, model: str | None) -> dict[str, Any]:
     """On the COM thread: every check, ok or what it found."""
     path = open_model(adapter, model)
@@ -79,23 +84,35 @@ def check_model(adapter: Any, model: str | None) -> dict[str, Any]:
     }
     findings = []
     results = results_summary(adapter, path, len(xyz), len(elements))
-    findings.append(
-        _finding(
-            "results present and of this model",
-            "Результаты расчёта есть и относятся к этой модели",
-            []
-            if results.get("present") and "note" not in results
-            else [results.get("note", "нет результатов")],
-        )
+    present = bool(results.get("present"))
+    found = _finding(
+        "results present and of this model",
+        "Результаты расчёта есть и относятся к этой модели",
+        [] if present and "note" not in results else [results.get("note", "нет результатов")],
     )
-    warning = adapter.results_warning(path)
-    findings.append(
-        _finding(
-            "results not older than the model",
-            "Модель не сохранялась после расчёта",
-            [warning] if warning else [],
+    if "service_note" in results:
+        found["note"] = (
+            f"ЛИРА добавила при расчёте {results['service_elements']} служебных специальных "
+            "элементов после последнего элемента модели; результаты относятся к этой модели"
         )
-    )
+    findings.append(found)
+    if present:
+        warning = adapter.results_warning(path)
+        findings.append(
+            _finding(
+                "results not older than the model",
+                "Модель не сохранялась после расчёта",
+                [warning] if warning else [],
+            )
+        )
+    else:
+        findings.append(
+            _not_checked(
+                "results not older than the model",
+                "Модель не сохранялась после расчёта",
+                "нет результатов расчёта",
+            )
+        )
     findings.append(
         _finding(
             "every element has a stiffness",
@@ -119,14 +136,23 @@ def check_model(adapter: Any, model: str | None) -> dict[str, Any]:
     )
     cases = [int(r[0]) for r in rpz._rows(adapter, path, "LoadCases") if r and r[0] is not None]
     try:
-        infos = adapter.load_combinations(path)["combinations"]
+        infos = adapter.load_combinations(path)["combinations"] if present else []
     except LiraInputError:
         infos = []
-    if not infos:
+    if not present:
+        # LIRA gives the RSN only with the results: without them nothing is known of the RSN.
+        findings.append(
+            _not_checked(
+                "every load case is in some RSN",
+                "Каждое загружение входит хотя бы в одно РСН",
+                "нет результатов расчёта: РСН читаются из результатов",
+            )
+        )
+    elif not infos:
         findings.append(
             _finding("the model has load combinations (RSN)", "В модели заданы РСН", ["нет РСН"])
         )
-    elif results.get("present"):
+    else:
         fits, dynamic = rpz.multipliers(adapter, path)
         used = {
             c for f in fits.values() for c, k in zip(f.cases, f.multipliers, strict=True) if k != 0
@@ -144,6 +170,6 @@ def check_model(adapter: Any, model: str | None) -> dict[str, Any]:
         "nodes": len(xyz),
         "elements": len(elements),
         "fe_types": {str(k): v for k, v in sorted(kinds.items())},
-        "all_ok": all(f["ok"] for f in findings),
+        "all_ok": all(f["ok"] for f in findings),  # a check not run (ok None) is not all ok
         "findings": findings,
     }

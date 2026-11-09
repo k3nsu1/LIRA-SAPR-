@@ -5,7 +5,7 @@ from dataclasses import asdict
 from typing import Any
 
 from lira_sapr_mcp.adapters.base import MODEL_TYPES
-from lira_sapr_mcp.errors import LiraComError
+from lira_sapr_mcp.errors import LiraComError, LiraInputError
 
 
 def _rows(adapter: Any, ref: str, table: str) -> list[list]:
@@ -51,6 +51,15 @@ def results_summary(adapter: Any, path: str, nodes: int, elements: int) -> dict[
     info = adapter.results_info(path)
     if not info["present"]:
         return info
+    extra = info["elements"] - elements
+    if info["nodes"] == nodes and extra > 0 and _service_elements(adapter, path, elements, extra):
+        info["service_elements"] = extra
+        info["service_note"] = (
+            f"LIRA added {extra} special elements after the model's last one "
+            f"({elements + 1}-{info['elements']}) when it analysed the model; the results "
+            "are of this model"
+        )
+        return info
     if (info["nodes"], info["elements"]) != (nodes, elements):
         info["note"] = (
             f"the results have {info['nodes']} nodes and {info['elements']} elements, the "
@@ -58,3 +67,17 @@ def results_summary(adapter: Any, path: str, nodes: int, elements: int) -> dict[
             "or to another model of the same name; run lira_run_analysis again"
         )
     return info
+
+
+def _service_elements(adapter: Any, path: str, elements: int, extra: int) -> bool:
+    """Whether the results' elements past the model's last one are all special elements
+    (FE 51-65 family), as LIRA adds them for its own use in the analysis (seen in K1.7: 116
+    of them in a model with bars on an elastic foundation)."""
+    numbers = list(range(elements + 1, elements + extra + 1))
+    try:
+        rows = adapter.element_forces(path, numbers, None)
+    except (LiraComError, LiraInputError):
+        return False
+    seen = {int(r["element"]) for r in rows if r.get("family") == "special"}
+    others = {int(r["element"]) for r in rows if r.get("family") != "special"}
+    return not others and seen == set(numbers)

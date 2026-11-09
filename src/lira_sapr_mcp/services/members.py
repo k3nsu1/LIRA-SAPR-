@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from lira_sapr_mcp.errors import LiraInputError
+from lira_sapr_mcp.numbers import format_numbers
 from lira_sapr_mcp.postprocessing import members as pm
 from lira_sapr_mcp.services.slabs import MM, Note, open_model, read_mesh
 
@@ -26,6 +27,7 @@ class Frame:
     displacement: dict[int, tuple[float, float, float]]
     notes: list[Note] = field(default_factory=list)
     stiffness_of: dict[int, int] = field(default_factory=dict)
+    ground: set[int] = field(default_factory=set)  # restrained and one-node support nodes
 
 
 def _xyz(rows: list[dict], what: str) -> dict[int, tuple[float, float, float]]:
@@ -80,7 +82,10 @@ def read_frame(
         for r in adapter.read_table(path, "Elements_Stiffnesses")
         if len(r) > 1 and r[0] is not None and r[1] is not None
     }
-    return Frame(path, mesh.nodes, mesh.elements, found, held, disp, list(mesh.notes), stiffness_of)
+    ground = pm.supports(mesh.nodes, mesh.elements, mesh.restrained, columns=False)
+    return Frame(
+        path, mesh.nodes, mesh.elements, found, held, disp, list(mesh.notes), stiffness_of, ground
+    )
 
 
 def _ratio(r: float) -> float | None:
@@ -106,7 +111,7 @@ def compute(frame: Frame) -> dict[str, Any]:
     if blind:
         notes.append(
             f"Пролётов без промежуточных узлов: {len(blind)} (например, элементы "
-            f"{', '.join(str(frame.members[d.span.member].elements[0]) for d in blind[:5])}): "
+            f"{', '.join(map(str, _blind_examples(frame, blind)))}): "
             "прогиб внутри одного конечного элемента по узлам не определяется — разбейте стержень "
             "в ЛИРЕ."
         )
@@ -123,12 +128,31 @@ def compute(frame: Frame) -> dict[str, Any]:
     }
 
 
+def _blind_examples(frame: Frame, blind: list[pm.SpanDeflection], count: int = 5) -> list[int]:
+    """The element of each span with no inner node (a span of one bar), without repeats."""
+    out: list[int] = []
+    for d in blind:
+        m = frame.members[d.span.member]
+        i, j = (m.nodes.index(n) for n in d.span.nodes[:2])
+        el = m.elements[min(i, j)]
+        if el not in out:
+            out.append(el)
+        if len(out) == count:
+            break
+    return out
+
+
+def span_elements(m: pm.Member, span: pm.Span) -> list[int]:
+    """The bars of a span: those of its member between the span's end nodes."""
+    i, j = sorted((m.nodes.index(span.nodes[0]), m.nodes.index(span.nodes[-1])))
+    return list(m.elements[i:j])
+
+
 def span_row(frame: Frame, d: pm.SpanDeflection) -> dict[str, Any]:
     m = frame.members[d.span.member]
     return {
-        "elements": f"{m.elements[0]}-{m.elements[-1]}"
-        if len(m.elements) > 1
-        else str(m.elements[0]),
+        # LIRA's notation: "22308-22326" would mean every element between, not 7 of them
+        "elements": format_numbers(span_elements(m, d.span)),
         "kind": "консоль" if d.span.cantilever else "пролёт",
         "from_node": d.span.nodes[0],
         "to_node": d.span.nodes[-1],
@@ -144,9 +168,7 @@ def drift_row(frame: Frame, d: pm.Drift) -> dict[str, Any]:
     m = frame.members[d.member]
     worst = max(d.parts, key=lambda p: p[3] / p[2] if p[2] > 0 else 0, default=None)
     row = {
-        "elements": f"{m.elements[0]}-{m.elements[-1]}"
-        if len(m.elements) > 1
-        else str(m.elements[0]),
+        "elements": format_numbers(list(m.elements)),
         "base_node": d.base,
         "top_node": d.top,
         "height_m": round(d.h, 3),
@@ -255,7 +277,9 @@ def pictures(frame: Frame, out_dir: Path, stem: str, source: str, view: str = "i
 
     bars = {el: frame.elements[el][1] for m in frame.members for el in m.elements}
     used = {n for ab in bars.values() for n in ab}
-    supports = {n for n in frame.held if n in used}
+    # On the scheme only what holds the model: restraints and one-node supports; not the
+    # tops of columns, where a beam rests and its span is cut.
+    supports = {n for n in frame.ground if n in used}
     found, _ = pm.spans(frame.members, frame.nodes, frame.held)
     read = [pm.span_deflection(sp, frame.nodes, frame.displacement) for sp in found]
     spans = [(d.span.nodes, d.ratio) for d in read if d.node is not None and d.ratio == d.ratio]

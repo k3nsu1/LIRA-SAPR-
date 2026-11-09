@@ -12,10 +12,12 @@ from lira_sapr_mcp.errors import LiraInputError
 from lira_sapr_mcp.postprocessing.footing import Fit, fit_combination, pressure
 from lira_sapr_mcp.services.slabs import open_model
 
-SAMPLE = 300  # nodes whose displacements fit the RSN multipliers
+SAMPLE = 300  # nodes evenly over the model whose displacements fit the RSN multipliers
+PEAK = 10  # and, per static load case, the nodes it moves most
 DOFS = ("X", "Y", "Z", "UX", "UY", "UZ")
 GOOD_FIT = 1e-6  # relative residual below which the multipliers are exact
 FORCES = ("RX", "RY", "RZ", "RUX", "RUY", "RUZ")
+KN_PER_TF = 9.80665  # LIRA's results API gives forces in tf and moments in tf·m, always
 
 
 def _rows(adapter: Any, path: str, table: str) -> list[list]:
@@ -26,13 +28,31 @@ def _rows(adapter: Any, path: str, table: str) -> list[list]:
 
 
 def _sample(adapter: Any, path: str) -> list[int]:
+    """Nodes whose displacements fit the RSN multipliers: up to SAMPLE nodes evenly over the
+    node numbers, and the PEAK nodes each static load case moves most. A load that acts on a
+    small part of the model (a canopy over a large slab) moves few nodes; the even sample may
+    miss all of them, and the fit then cannot see that load case at all."""
     nodes = sorted(
         int(r[0]) for r in _rows(adapter, path, "Nodes_Coordinates") if r and r[0] is not None
     )
     if len(nodes) <= SAMPLE:
         return nodes
     step = len(nodes) / SAMPLE
-    return sorted({nodes[int(i * step)] for i in range(SAMPLE)})
+    chosen = {nodes[int(i * step)] for i in range(SAMPLE)}
+    cases = [int(r[0]) for r in _rows(adapter, path, "LoadCases") if r and r[0] is not None]
+    for case in cases:  # one case at a time: all nodes of all cases may not fit in memory
+        try:
+            rows = adapter.node_displacements(path, None, [case])
+        except LiraInputError:
+            continue
+        size = {}
+        for r in rows:
+            if "shape" in r or int(r["case"]) != case:
+                continue
+            size[int(r["node"])] = max(abs(float(r.get(k) or 0.0)) for k in DOFS[:3])
+        moved = sorted((n for n, v in size.items() if v > 0), key=size.get, reverse=True)
+        chosen.update(moved[:PEAK])
+    return sorted(chosen)
 
 
 def _static_cases(rows: list[dict]) -> tuple[dict[int, dict[int, np.ndarray]], set[int]]:
@@ -116,7 +136,7 @@ def model_facts(adapter: Any, model: str | None) -> dict[str, Any]:
                 row["make_up"] = [
                     {"case": case, "name": names.get(case), "multiplier": round(k, 4)}
                     for case, k in zip(fit.cases, fit.multipliers, strict=True)
-                    if k != 0
+                    if round(k, 4) != 0
                 ]
                 row["exact"] = fit.residual < GOOD_FIT
                 row["residual"] = float(f"{fit.residual:.2e}")
@@ -135,12 +155,13 @@ def reactions(
     combination: int | None,
 ) -> dict[int, dict[str, float]]:
     """On the COM thread: per node, the loads the model's fragment passes to it (LIRA's loads
-    on fragment), for a load case or an RSN (its fitted multipliers times the load cases')."""
+    on fragment), for a load case or an RSN (its fitted multipliers times the load cases'),
+    in kN and kN·m: LIRA's results API answers in tf and tf·m whatever units LIRA shows."""
     path = open_model(adapter, model)
     if combination is None:
         rows = adapter.fragment_loads(path, nodes, [case])
         return {
-            int(r["node"]): {k: float(r.get(k, 0.0)) for k in FORCES}
+            int(r["node"]): {k: float(r.get(k, 0.0)) * KN_PER_TF for k in FORCES}
             for r in rows
             if "shape" not in r
         }
@@ -163,7 +184,7 @@ def reactions(
             continue
         acc = out.setdefault(int(r["node"]), dict.fromkeys(FORCES, 0.0))
         for f in FORCES:
-            acc[f] += k[int(r["case"])] * float(r.get(f, 0.0))
+            acc[f] += k[int(r["case"])] * float(r.get(f, 0.0)) * KN_PER_TF
     return out
 
 
@@ -218,6 +239,19 @@ def footing_checks(
     return out
 
 
+def make_up_text(make_up: list[dict]) -> str:
+    """The make-up of an RSN as the RPZ writes it: 1·L1 + 0,85·L2 − 0,5·L3."""
+    text = ""
+    for m in make_up:
+        k = m["multiplier"]
+        number = f"{abs(k):g}".replace(".", ",") + f"·L{m['case']}"
+        if not text:
+            text = ("−" if k < 0 else "") + number
+        else:
+            text += (" − " if k < 0 else " + ") + number
+    return text
+
+
 def write_facts(facts: dict[str, Any], out_dir: Path) -> str:
     """A Word file with the tables for sections 1.7 and 4 of the RPZ."""
     from docx import Document
@@ -239,10 +273,7 @@ def write_facts(facts: dict[str, Any], out_dir: Path) -> str:
         for cell, h in zip(t.rows[0].cells, ("№", "Наименование", "Состав"), strict=True):
             cell.text = h
         for c in facts["combinations"]:
-            parts = " + ".join(
-                f"{str(m['multiplier']).replace('.', ',')}·L{m['case']}"
-                for m in c.get("make_up", [])
-            )
+            parts = make_up_text(c.get("make_up", []))
             if c.get("make_up") is not None and not c.get("exact"):
                 parts += " (приближённо: РСН содержит динамику или не сводится к сумме)"
             for cell, v in zip(
