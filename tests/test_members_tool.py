@@ -139,3 +139,63 @@ async def test_pictures_for_the_appendices(tmp_path):
     pngs = sorted(p.name for p in (tmp_path / "out").glob("*.png"))
     assert pngs == ["p_deformed_xz.png", "p_scheme_xz.png", "p_spans_xz.png"]
     assert all((tmp_path / "out" / n).stat().st_size > 20_000 for n in pngs)
+
+
+def test_the_scheme_shows_supports_of_the_model_not_tops_of_columns():
+    """K1.7: the scheme drew support triangles on the tops of the canopy columns."""
+    adapter = FakeAdapter()
+    disp = portal(adapter)
+    adapter.combination_displacements = answer(disp)
+    frame = read_frame(adapter, "p.lir", None, None, None, 3)
+    assert {10, 14} <= frame.held  # the beam's span is still cut at the column tops
+    assert frame.ground == {1, 2}
+
+
+def test_blind_spans_are_named_by_their_own_elements_once():
+    """K1.7: the note listed "22329, 22329, 22329" - the first bar of the beam, repeated."""
+    adapter = FakeAdapter()
+    disp = portal(adapter)
+    adapter.combination_displacements = answer(disp)
+    tables = adapter.docs["p.lir"]["tables"]
+    # a column under every node of the beam: four spans of one bar each
+    for i, n in enumerate((11, 12, 13), start=3):
+        tables["Nodes_Coordinates"].append([i, 1.5 * (i - 2), 0, 0])
+        tables["Elements_TypeAndNodes"].append([i, 10, f"{i}, {n}"])
+        tables["Nodes_Restraints"].append([i, "1", "1", "1"])
+        disp[i] = (0, 0, 0)
+    result = compute(read_frame(adapter, "p.lir", None, None, None, 3))
+    assert result["blind_spans"] == 4
+    (note,) = [n for n in result["notes"] if n.startswith("Пролётов без")]
+    assert "элементы 10, 11, 12, 13)" in note
+
+
+def test_labels_of_spans_at_one_place_are_stacked():
+    from lira_sapr_mcp.postprocessing.frame_plots import _label_places
+
+    nodes = {1: (0, 0, 0), 2: (1, 0, 0), 3: (1.01, 0, 0), 4: (2, 0, 0)}
+    nodes |= {5: (50, 0, 0), 6: (51, 0, 0)}
+    spans = [((1, 2), 100.0), ((3, 4), 101.0), ((5, 6), 102.0)]
+    shifts = [shift for _, shift in _label_places(nodes, spans, "xz", 3)]
+    assert shifts == [0, 1, 0]
+
+
+def test_a_span_names_its_own_bars_in_lira_notation():
+    """K1.7: a rafter of bars 22308, 22311, ..., 22326 was written "22308-22326", which in
+    LIRA's notation means all 19 elements between; and every span of a member named all
+    of the member's bars."""
+    adapter = FakeAdapter()
+    disp = portal(adapter)
+    adapter.combination_displacements = answer(disp)
+    tables = adapter.docs["p.lir"]["tables"]
+    renumber = {10: 30, 11: 33, 12: 36, 13: 37}  # beam bars 30, 33, 36, 37
+    tables["Elements_TypeAndNodes"] = [
+        [renumber.get(e, e), fe, ns] for e, fe, ns in tables["Elements_TypeAndNodes"]
+    ]
+    # a middle column under node 12 cuts the beam into two spans
+    tables["Nodes_Coordinates"].append([3, 3, 0, 0])
+    tables["Elements_TypeAndNodes"].append([3, 10, "3, 12"])
+    tables["Nodes_Restraints"].append([3, "1", "1", "1"])
+    disp[3] = (0, 0, 0)
+    result = compute(read_frame(adapter, "p.lir", None, None, None, 3))
+    assert sorted(s["elements"] for s in result["spans"]) == ["30 33", "36-37"]
+    assert sorted(c["elements"] for c in result["columns"]) == ["1", "2", "3"]

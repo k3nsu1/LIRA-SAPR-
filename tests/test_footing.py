@@ -61,3 +61,19 @@ def test_rsn_multipliers_are_fitted_exactly_from_displacements():
     assert fit.cases == [1, 2, 3, 4]
     assert fit.multipliers == pytest.approx([k[c] for c in (1, 2, 3, 4)])
     assert fit.multipliers[1] == 0.0 and fit.residual < 1e-12
+
+
+def test_a_load_case_with_a_noise_multiplier_is_not_in_the_rsn():
+    """K1.7: the RSN held cases 1 and 2 only; the canopy case 3 came out -0.0001 from the
+    rounding of the results and was taken as part of the RSN."""
+    rng = np.random.default_rng(5)
+    by_case = {c: rng.normal(size=(40, 6)) for c in (1, 2)}
+    by_case[3] = np.zeros((40, 6))
+    by_case[3][:4] = 0.02 * rng.normal(size=(4, 6))  # a small part of the model
+    rsn = 1.0 * by_case[1] + 0.85 * by_case[2] + np.round(rng.normal(size=(40, 6)) * 1e-7, 9)
+    fit = fit_combination(by_case, rsn)
+    assert fit.multipliers[2] == 0.0
+    assert fit.multipliers[:2] == pytest.approx([1.0, 0.85], abs=1e-5)
+    # a case that is in the RSN, however small its displacements, stays
+    fit = fit_combination(by_case, rsn + 1.0 * by_case[3])
+    assert fit.multipliers[2] == pytest.approx(1.0, abs=1e-3)

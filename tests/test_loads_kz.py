@@ -125,3 +125,33 @@ async def test_the_tool_answers_and_writes_section_3(tmp_path):
     assert "Атырау" in other.structured_content["results"][0]["lines"][0]
     assert bad.is_error and "нет a1, a2" in bad.content[0].text
     assert nowhere.is_error and "city or districts" in nowhere.content[0].text
+
+
+def test_districts_given_in_part_or_wrong_are_said_plainly():
+    """K1.7: a snow calculation with no snow district fell with "unsupported operand type(s)
+    for *: 'float' and 'NoneType'"; a wind district "3" was said to be not given."""
+    place = lk.PLACE
+    with pytest.raises(ValueError, match="ветровой район «3»: один из I, II"):
+        lk.climate(place, {place: ("3", "II", "", "")})
+    with pytest.raises(ValueError, match="снеговой район по карте 5 «2»"):
+        lk.climate(place, {place: ("III", "II", "2", "")})
+    wind_only = lk.climate(place, {place: ("III", "", "", "")})
+    with pytest.raises(ValueError, match="не задан снеговой район по карте 4"):
+        lk.snow_duopitch(wind_only, 12, 10, 10)
+    map4 = lk.climate(place, {place: ("III", "II", "", "")})
+    no_map5 = lk.snow_duopitch(map4, 12, 10, 10)  # no map 5 needed below 18 m
+    assert no_map5.values["snowRoof"] == 97.9 and "по карте 5: не задан" in no_map5.lines[1]
+    with pytest.raises(ValueError, match="по карте 5"):
+        lk.snow_duopitch(map4, 18, 10, 10)
+    multi = lk.snow_multispan(map4, 12, 10, 10, 10, 10, 6, 6, 1)
+    assert multi.values["snowAcc"] is None and multi.values["snowDrift"] is None
+    assert "карта 5 не задана; карта 6 не задана" in multi.lines[1]
+    with pytest.raises(ValueError, match="по карте 6"):
+        lk.snow_step(map4, 5, 5, 2, 12, 12, 12)
+    line = lk.snow_duopitch(map4, 12, 10, 10).lines[0]
+    assert line.startswith("Место строительства: место строительства;")
+    assert (
+        lk.snow_duopitch(lk.climate("Павлодар"), 12, 10, 10)
+        .lines[0]
+        .startswith("Место строительства: г. Павлодар;")
+    )

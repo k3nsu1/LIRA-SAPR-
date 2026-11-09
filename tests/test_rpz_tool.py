@@ -36,13 +36,22 @@ def model(adapter: FakeAdapter, dynamic: bool = False) -> None:
     }
     adapter.active = "f.lir"
     disp = {c: {n: rng.normal(size=6) for n in nodes} for c in K}
+    # LIRA's results API answers in tf and tf·m: these are the kN below divided by g
     loads = {
-        c: {n: np.array([0, 0, -100.0 * c * n, 10.0 * c, 5.0 * c, 0]) for n in (1, 2)} for c in K
+        c: {
+            n: np.array([0, 0, -100.0 * c * n, 10.0 * c, 5.0 * c, 0]) / rpz.KN_PER_TF
+            for n in (1, 2)
+        }
+        for c in K
     }
 
     def node_displacements(path, ns, cases):
+        ns = ns or nodes
         rows = [
-            {"node": n, "case": c} | dict(zip(DOFS, disp[c][n], strict=True)) for c in K for n in ns
+            {"node": n, "case": c} | dict(zip(DOFS, disp[c][n], strict=True))
+            for c in K
+            if cases is None or c in cases
+            for n in ns
         ]
         if dynamic:
             rows += [{"node": n, "case": 9, "shape": "1", "Z": 0.1} for n in ns]
@@ -140,3 +149,80 @@ async def test_tools_answer_and_write_the_tables(tmp_path):
     assert f["ok"] and p.structured_content["all_ok"]
     assert both.is_error and "exactly one" in both.content[0].text
     assert bad.is_error and "needs nodes, l, b, d and R" in bad.content[0].text
+
+
+def test_a_load_on_a_small_part_of_a_large_model_is_found_in_the_rsn():
+    """K1.7: a canopy load (case 3) moves only a few nodes of a large slab model; the even
+    sample of nodes missed them and the canopy's dead load got multiplier 0."""
+    adapter = FakeAdapter()
+    nodes = list(range(1, 3001))
+    step = len(nodes) / rpz.SAMPLE
+    even = {nodes[int(i * step)] for i in range(rpz.SAMPLE)}
+    canopy = [n for n in nodes if n not in even][-4:]
+    rng = np.random.default_rng(3)
+    disp = {
+        1: {n: rng.normal(size=6) for n in nodes},
+        2: {n: rng.normal(size=6) for n in nodes},
+        3: {n: (rng.normal(size=6) if n in canopy else np.zeros(6)) for n in nodes},
+    }
+    k = {1: 1.0, 2: 0.85, 3: 1.0}
+    adapter.docs["big.lir"] = {
+        "title": "big",
+        "path": "big.lir",
+        "type": 5,
+        "modified": False,
+        "tables": {
+            "Nodes_Coordinates": [[n, n, 0, 0] for n in nodes],
+            "LoadCases": [
+                [1, "Вес", None, "Постоянное"],
+                [2, "Оборудование", None, "Постоянное"],
+                [3, "Кровля навеса", None, "Постоянное"],
+            ],
+            "Stiffnesses": [],
+            "Elements_Stiffnesses": [],
+        },
+    }
+    adapter.active = "big.lir"
+    adapter.node_displacements = lambda path, ns, cases: [
+        {"node": n, "case": c} | dict(zip(DOFS, disp[c][n], strict=True))
+        for c in (cases or k)
+        for n in (ns or nodes)
+    ]
+    adapter.combination_displacements = lambda path, ns, combos: [
+        {"node": n, "combination": 1}
+        | dict(zip(DOFS, sum(k[c] * disp[c][n] for c in k), strict=True))
+        for n in ns
+    ]
+    adapter.load_combinations = lambda path: {
+        "code": "SP RK EN",
+        "combinations": [
+            {"number": 1, "name": "РСН1", "formula": 1, "special": False, "seismic": False}
+        ],
+    }
+    (rsn,) = rpz.model_facts(adapter, "big.lir")["combinations"]
+    assert {m["case"]: m["multiplier"] for m in rsn["make_up"]} == {1: 1.0, 2: 0.85, 3: 1.0}
+    assert rsn["exact"]
+
+
+def test_the_make_up_is_written_with_signs_not_plus_minus():
+    make_up = [
+        {"case": 1, "multiplier": 1.0},
+        {"case": 2, "multiplier": 0.85},
+        {"case": 3, "multiplier": -0.5},
+    ]
+    assert rpz.make_up_text(make_up) == "1·L1 + 0,85·L2 − 0,5·L3"
+    assert rpz.make_up_text([{"case": 4, "multiplier": -1.0}]) == "−1·L4"
+
+
+def test_loads_on_fragment_in_tf_are_checked_in_kn():
+    """K1.7: the footing check took LIRA's tf for kN, so pressures came out 9.8 times low."""
+    adapter = FakeAdapter()
+    model(adapter)
+    adapter.fragment_loads = lambda path, ns, cases: [
+        {"node": n, "case": 1, "RZ": -100.0, "RUX": 2.0, "RUY": 1.0} for n in ns
+    ]  # 100 tf down, as LIRA's API answers
+    forces = rpz.reactions(adapter, "f.lir", [1], 1, None)
+    assert forces[1]["RZ"] == pytest.approx(-980.665) and forces[1]["RUX"] == pytest.approx(19.6133)
+    (f,) = rpz.footing_checks([{"nodes": [1], "l": 2, "b": 2, "d": 1.5, "R": 250}], forces)
+    assert f["N_kN"] == pytest.approx(980.7) and f["p_kPa"] == pytest.approx(275.2, abs=0.1)
+    assert not f["ok"]  # 275 kPa > R = 250; with tf read as kN it was 55 kPa and "ok"

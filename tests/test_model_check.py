@@ -67,3 +67,43 @@ async def test_the_tool_finds_what_is_wrong(tmp_path):
     assert found["no coincident nodes"]["items"] == [[1, 21]]
     assert not found["results not older than the model"]["ok"]
     assert found["results present and of this model"]["ok"]
+
+
+def test_without_results_the_result_checks_are_not_run_and_rsn_is_not_said_missing():
+    """K1.7: before the analysis the check said "no RSN" and "not saved after the analysis"."""
+    adapter = FakeAdapter()
+    checked_model(adapter)
+    adapter.results_info = lambda path: {"present": False}
+    out = check_model(adapter, "f.lir")
+    found = {f["check"]: f for f in out["findings"]}
+    assert not found["results present and of this model"]["ok"]
+    assert found["results not older than the model"]["ok"] is None
+    assert found["every load case is in some RSN"]["ok"] is None
+    assert "the model has load combinations (RSN)" not in found
+    assert not out["all_ok"]
+
+
+def test_special_elements_lira_adds_in_the_analysis_do_not_make_the_results_foreign():
+    """K1.7: LIRA's results had 116 special elements past the model's last one."""
+    adapter = FakeAdapter()
+    checked_model(adapter)
+    adapter.results_info = lambda path: {"present": True, "nodes": 20, "elements": 23}
+    asked = []
+
+    def forces(path, elements, cases, families=None):
+        asked.append(elements)
+        return [{"family": "special", "element": e, "case": 1, "section": 1} for e in elements]
+
+    adapter.element_forces = forces
+    out = check_model(adapter, "f.lir")
+    found = {f["check"]: f for f in out["findings"]}
+    assert asked == [[21, 22, 23]]
+    assert found["results present and of this model"]["ok"]
+    assert "3 служебных" in found["results present and of this model"]["note"]
+    # a bar past the model's last element: results of another version of the model
+    adapter.element_forces = lambda path, elements, cases, families=None: [
+        {"family": "bar", "element": e, "case": 1, "section": 1} for e in elements
+    ]
+    out = check_model(adapter, "f.lir")
+    found = {f["check"]: f for f in out["findings"]}
+    assert not found["results present and of this model"]["ok"]
