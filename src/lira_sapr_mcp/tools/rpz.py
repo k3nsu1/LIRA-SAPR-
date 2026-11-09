@@ -164,7 +164,7 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
         try:
             if districts:
                 d = {k: districts.get(k, "") for k in ("wind", "snow4", "snow5", "snow6")}
-                place = city or "место строительства"
+                place = city or lk.PLACE
                 c = lk.climate(place, {place: (d["wind"], d["snow4"], d["snow5"], d["snow6"])})
             elif city:
                 c = lk.climate(city)

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from lira_sapr_mcp.errors import LiraInputError
+from lira_sapr_mcp.numbers import format_numbers
 from lira_sapr_mcp.postprocessing import members as pm
 from lira_sapr_mcp.services.slabs import MM, Note, open_model, read_mesh
 
@@ -141,12 +142,17 @@ def _blind_examples(frame: Frame, blind: list[pm.SpanDeflection], count: int = 5
     return out
 
 
+def span_elements(m: pm.Member, span: pm.Span) -> list[int]:
+    """The bars of a span: those of its member between the span's end nodes."""
+    i, j = sorted((m.nodes.index(span.nodes[0]), m.nodes.index(span.nodes[-1])))
+    return list(m.elements[i:j])
+
+
 def span_row(frame: Frame, d: pm.SpanDeflection) -> dict[str, Any]:
     m = frame.members[d.span.member]
     return {
-        "elements": f"{m.elements[0]}-{m.elements[-1]}"
-        if len(m.elements) > 1
-        else str(m.elements[0]),
+        # LIRA's notation: "22308-22326" would mean every element between, not 7 of them
+        "elements": format_numbers(span_elements(m, d.span)),
         "kind": "консоль" if d.span.cantilever else "пролёт",
         "from_node": d.span.nodes[0],
         "to_node": d.span.nodes[-1],
@@ -162,9 +168,7 @@ def drift_row(frame: Frame, d: pm.Drift) -> dict[str, Any]:
     m = frame.members[d.member]
     worst = max(d.parts, key=lambda p: p[3] / p[2] if p[2] > 0 else 0, default=None)
     row = {
-        "elements": f"{m.elements[0]}-{m.elements[-1]}"
-        if len(m.elements) > 1
-        else str(m.elements[0]),
+        "elements": format_numbers(list(m.elements)),
         "base_node": d.base,
         "top_node": d.top,
         "height_m": round(d.h, 3),

@@ -177,3 +177,25 @@ def test_labels_of_spans_at_one_place_are_stacked():
     spans = [((1, 2), 100.0), ((3, 4), 101.0), ((5, 6), 102.0)]
     shifts = [shift for _, shift in _label_places(nodes, spans, "xz", 3)]
     assert shifts == [0, 1, 0]
+
+
+def test_a_span_names_its_own_bars_in_lira_notation():
+    """K1.7: a rafter of bars 22308, 22311, ..., 22326 was written "22308-22326", which in
+    LIRA's notation means all 19 elements between; and every span of a member named all
+    of the member's bars."""
+    adapter = FakeAdapter()
+    disp = portal(adapter)
+    adapter.combination_displacements = answer(disp)
+    tables = adapter.docs["p.lir"]["tables"]
+    renumber = {10: 30, 11: 33, 12: 36, 13: 37}  # beam bars 30, 33, 36, 37
+    tables["Elements_TypeAndNodes"] = [
+        [renumber.get(e, e), fe, ns] for e, fe, ns in tables["Elements_TypeAndNodes"]
+    ]
+    # a middle column under node 12 cuts the beam into two spans
+    tables["Nodes_Coordinates"].append([3, 3, 0, 0])
+    tables["Elements_TypeAndNodes"].append([3, 10, "3, 12"])
+    tables["Nodes_Restraints"].append([3, "1", "1", "1"])
+    disp[3] = (0, 0, 0)
+    result = compute(read_frame(adapter, "p.lir", None, None, None, 3))
+    assert sorted(s["elements"] for s in result["spans"]) == ["30 33", "36-37"]
+    assert sorted(c["elements"] for c in result["columns"]) == ["1", "2", "3"]

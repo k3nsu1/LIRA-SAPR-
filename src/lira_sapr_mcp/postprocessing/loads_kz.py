@@ -99,6 +99,11 @@ def climate(city: str, cities: dict[str, tuple[str, str, str, str]] | None = Non
             f"город «{city}» не в справочнике: {', '.join(table)} (или задайте районы)"
         )
     w, s4, s5, s6 = table[city]
+    if w and w not in WIND:
+        raise ValueError(f"ветровой район «{w}»: один из {', '.join(WIND)}")
+    for n, d in (("4", s4), ("5", s5), ("6", s6)):
+        if d and d not in SNOW:
+            raise ValueError(f"снеговой район по карте {n} «{d}»: один из {', '.join(SNOW)}")
     return Climate(
         city,
         w,
@@ -110,6 +115,24 @@ def climate(city: str, cities: dict[str, tuple[str, str, str, str]] | None = Non
         s6,
         SNOW.get(s6, (None,) * 3)[2],
     )
+
+
+PLACE = "место строительства"  # the name of a place given by its districts alone
+
+
+def where(c: Climate) -> str:
+    return c.city if c.city == PLACE else f"г. {c.city}"
+
+
+def need_snow(c: Climate, *maps: str) -> None:
+    """Refuse a snow calculation whose district on one of these maps is not given."""
+    given = {"4": c.sk, "5": c.sk_exc, "6": c.sk_drift}
+    missing = [m for m in maps if given[m] is None]
+    if missing:
+        raise ValueError(
+            f"для «{c.city}» не задан снеговой район по карте {', '.join(missing)} "
+            "(districts: snow4, snow5, snow6)"
+        )
 
 
 @dataclass
@@ -169,7 +192,8 @@ def snow_duopitch(
     ce = ENV[env]
     m1, m2 = mu1(a1), mu1(a2)
     s = lambda m, k, part=1.0: rnd(part * m * k * ce * ct, 3)  # noqa: E731
-    sk, ske = c.sk, c.sk_exc
+    need_snow(c, "4", *(["5"] if span >= 18 else []))
+    sk, ske = c.sk, c.sk_exc if c.sk_exc is not None else 0.0
     norm = [(s(m1, sk), s(m2, sk)), (s(m1, sk, 0.5), s(m2, sk)), (s(m1, sk), s(m2, sk, 0.5))]
     acc = [(s(m1, ske), s(m2, ske)), (s(m1, ske, 0.5), s(m2, ske)), (s(m1, ske), s(m2, ske, 0.5))]
     p4, p5 = kg(max(v[0] for v in norm)), kg(max(v[1] for v in norm))
@@ -183,9 +207,9 @@ def snow_duopitch(
             ("Чрезвычайная снеговая нагрузка на покрытие (аварийная ситуация)", max(p6, p7))
         )
     r.lines = [
-        f"Место строительства: г. {c.city}; пролёт {fmt(span)} м; α1 = {fmt(a1)}°, α2 = {fmt(a2)}°",
-        f"Снеговой район по карте 4: {c.s4}, sk = {fmt(sk, 'кПа')}; по карте 5: {c.s5}, "
-        f"sk = {fmt(ske, 'кПа')}",
+        f"Место строительства: {where(c)}; пролёт {fmt(span)} м; α1 = {fmt(a1)}°, α2 = {fmt(a2)}°",
+        f"Снеговой район по карте 4: {c.s4}, sk = {fmt(sk, 'кПа')}; по карте 5: "
+        + (f"{c.s5}, sk = {fmt(c.sk_exc, 'кПа')}" if c.sk_exc is not None else "не задан"),
         "Пролёт ≥ 18 м: по НТП РК п. 3.4.1 покрытие проверяется на чрезвычайные снеговые нагрузки."
         if span >= 18
         else "Пролёт < 18 м: чрезвычайные снеговые нагрузки учитывать не требуется.",
@@ -231,7 +255,10 @@ def snow_multispan(
     mu2 = rnd(0.8 + 0.8 * am / 30, 3) if am <= 30 else (1.6 if am < 60 else float("nan"))
     m = [mu1(a1), mu1(a2), mu1(a3), mu1(a4)]
     s = lambda mu, k: rnd(mu * ce * ct * k, 3)  # noqa: E731
-    sk, ske, skd = c.sk, c.sk_exc, c.sk_drift
+    need_snow(c, "4", *(["5", "6"] if span >= 18 else []))
+    sk = c.sk
+    ske = c.sk_exc if c.sk_exc is not None else 0.0
+    skd = c.sk_drift if c.sk_drift is not None else 1.0
     b3 = l2 + l3
     m_b = rnd(min(2 * h / skd, 2 * b3 / (l2 + l3), 5), 3)
     s_b = rnd(m_b * skd, 3)
@@ -243,8 +270,8 @@ def snow_multispan(
     r = Result("Снеговая нагрузка на многопролётное покрытие (СП РК EN 1991-1-3, 5.3.4, прил. B.2)")
     r.values = {
         "snowRoof": mx,
-        "snowAcc": kg(max(acc1 + acc2)),
-        "snowDrift": kg(s_b),
+        "snowAcc": kg(max(acc1 + acc2)) if c.sk_exc is not None else None,
+        "snowDrift": kg(s_b) if c.sk_drift is not None else None,
         "sk": sk,
         "span": span,
     }
@@ -257,9 +284,12 @@ def snow_multispan(
             ("Чрезвычайный нанос в разжелобке (аварийная, прил. B.2)", r.values["snowDrift"])
         )
     r.lines = [
-        f"Место строительства: г. {c.city}; пролёт {fmt(span)} м",
-        f"sk (карта 4, район {c.s4}) = {fmt(sk, 'кПа')}; карта 5 ({c.s5}) = {fmt(ske, 'кПа')}; "
-        f"карта 6 ({c.s6}) = {fmt(skd, 'кПа')}; Ce = {fmt(ce)}; Ct = {fmt(ct)}",
+        f"Место строительства: {where(c)}; пролёт {fmt(span)} м",
+        f"sk (карта 4, район {c.s4}) = {fmt(sk, 'кПа')}; карта 5 "
+        + (f"({c.s5}) = {fmt(ske, 'кПа')}" if c.sk_exc is not None else "не задана")
+        + "; карта 6 "
+        + (f"({c.s6}) = {fmt(skd, 'кПа')}" if c.sk_drift is not None else "не задана")
+        + f"; Ce = {fmt(ce)}; Ct = {fmt(ct)}",
         f"μ1(α1…α4) = {'; '.join(fmt(x) for x in m)}",
         f"μ2 в разжелобке при ᾱ = (α2+α3)/2 = {fmt(am)}°: {fmt(mu2)} (табл. 5.2)",
         "Случай I: " + "  ".join(f"s{i + 1} = {fmt(v, 'кПа')}" for i, v in enumerate(case1)),
@@ -290,6 +320,7 @@ def snow_step(
 ) -> Result:
     """Roof abutting a taller construction: 5.3.6 (persistent) and annex B.3 (exceptional
     drift, sk by map 6)."""
+    need_snow(c, "4", "6")
     sk, skd, ce = c.sk, c.sk_drift, ENV[env]
     m1 = mu1(a1)
     ls_raw = 2 * h
@@ -313,7 +344,7 @@ def snow_step(
         ("Чрезвычайный снеговой нанос у перепада (аварийная, прил. B.3)", kg(s_b)),
     ]
     r.lines = [
-        f"Место строительства: г. {c.city}; sk (карта 4, район {c.s4}) = {fmt(sk, 'кПа')}; "
+        f"Место строительства: {where(c)}; sk (карта 4, район {c.s4}) = {fmt(sk, 'кПа')}; "
         f"sk (карта 6, район {c.s6}) = {fmt(skd, 'кПа')}; Ce = {fmt(ce)}; Ct = {fmt(ct)}; γ = "
         f"{fmt(gamma)} кН/м³",
         f"h = {fmt(h)} м; b1 = {fmt(b1)} м; b2 = {fmt(b2)} м; α1 = {fmt(a1)}°; уклон верхней "
