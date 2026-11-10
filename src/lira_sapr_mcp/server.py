@@ -39,6 +39,7 @@ SCRIPT_INSTRUCTIONS = (
 )
 
 TABLES_REFERENCE = "lira://reference/tables"
+QUERY_REFERENCE = "lira://reference/query"
 
 
 def build_server(session: LiraSession, scripts: bool = True) -> MCPServer:
@@ -75,5 +76,14 @@ def build_server(session: LiraSession, scripts: bool = True) -> MCPServer:
     )
     def tables_reference() -> str:
         return files("lira_sapr_mcp.reference").joinpath("tables.md").read_text(encoding="utf-8")
+
+    @mcp.resource(
+        QUERY_REFERENCE,
+        title="LIRA result query arguments",
+        description="Shared result filters, sorting, envelopes, row limits and export options.",
+        mime_type="text/markdown",
+    )
+    def query_reference() -> str:
+        return files("lira_sapr_mcp.reference").joinpath("query.md").read_text(encoding="utf-8")
 
     return mcp

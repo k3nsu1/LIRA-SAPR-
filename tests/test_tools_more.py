@@ -145,9 +145,61 @@ async def test_tables_reference_is_a_resource(tmp_path):
     async with Client(build_server(session)) as client:
         listed = await client.list_resources()
         read = await client.read_resource("lira://reference/tables")
-    assert [str(r.uri) for r in listed.resources] == ["lira://reference/tables"]
+    assert {str(r.uri) for r in listed.resources} == {
+        "lira://reference/tables",
+        "lira://reference/query",
+    }
     text = read.contents[0].text
     assert "Nodes_Coordinates" in text and "universal space bar" in text
+
+
+@pytest.mark.parametrize("scripts", [True, False])
+async def test_query_reference_is_readable_and_not_repeated_in_tools(tmp_path, scripts):
+    session, _ = fake_session(tmp_path)
+    async with Client(build_server(session, scripts=scripts)) as client:
+        listed = await client.list_resources()
+        read = await client.read_resource("lira://reference/query")
+        tools = (await client.list_tools()).tools
+    resource = next(r for r in listed.resources if str(r.uri) == "lira://reference/query")
+    assert resource.mime_type == "text/markdown"
+    assert read.contents[0].mime_type == "text/markdown"
+    text = read.contents[0].text
+    for detail in (
+        "components",
+        "sort_by",
+        "by_abs=false",
+        "default 20",
+        "null = up to 500",
+        "envelope=true",
+        "threshold",
+        "export_path",
+        "existing file is",
+        "replaced",
+        "extremes",
+        "total_rows",
+        '"selected"',
+        '"visible"',
+        "reopen it first",
+    ):
+        assert detail in text
+    query_tools = {
+        "lira_node_displacements",
+        "lira_element_forces",
+        "lira_combination_displacements",
+        "lira_combination_forces",
+        "lira_design_forces",
+        "lira_reinforcement",
+        "lira_fragment_loads",
+        "lira_punching_loads",
+    }
+    linked = {t.name for t in tools if "lira://reference/query" in (t.description or "")}
+    assert linked == query_tools
+    for tool in tools:
+        description = tool.description or ""
+        assert "Query arguments (all result tools)" not in description
+        if tool.name in query_tools:
+            assert description.count("lira://reference/query") == 1
+            assert "null = up to 500" not in description
 
 
 def test_tables_reference_describes_every_table_of_lira_2024():

@@ -29,7 +29,7 @@ def test_cli_prints_version():
 
 @pytest.mark.skipif(shutil.which("uv") is None, reason="needs uv to build the wheel")
 def test_wheel_carries_reference_and_entry_point(tmp_path):
-    """What `uvx` installs: the table reference must ship inside the wheel."""
+    """What `uvx` installs: the references must ship inside the wheel."""
     root = Path(__file__).parents[1]
     subprocess.run(
         ["uv", "build", "--wheel", "--out-dir", str(tmp_path), str(root)],
@@ -43,6 +43,7 @@ def test_wheel_carries_reference_and_entry_point(tmp_path):
         entry_points = zf.read(f"{info}/entry_points.txt")
         metadata = zf.read(f"{info}/METADATA").decode("utf-8")
     assert "lira_sapr_mcp/reference/tables.md" in names
+    assert "lira_sapr_mcp/reference/query.md" in names
     assert f"{info}/licenses/LICENSE" in names and "License-Expression: MIT" in metadata
     assert b"lira-sapr-mcp = lira_sapr_mcp.__main__:main" in entry_points
 

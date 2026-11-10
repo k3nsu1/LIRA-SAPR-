@@ -1,6 +1,6 @@
 """Tools: analysis results, reduced on the server to what the agent asks.
 
-Every result tool takes the same query arguments (see QUERY_HELP) and runs them through
+Every result tool takes the same query arguments (see lira://reference/query) and runs them through
 one path: convert units -> envelope -> threshold -> extremes and top rows -> export.
 """
 
@@ -13,22 +13,10 @@ from lira_sapr_mcp.services import results as rs
 from lira_sapr_mcp.services.session import LiraSession
 from lira_sapr_mcp.tools.common import READ_ONLY, extend_doc, lira_errors, numbers_in
 
-QUERY_HELP = """
-Query arguments (all result tools): components - which values (default all);
-sort_by - a component to order rows by, by absolute value unless by_abs=false;
-top - rows to return (at least 1, default 20, null = up to 500); envelope=true - per
-place (node, or element and section) the minimum and maximum of each component over
-load cases / combinations / shapes / limit states, with where each occurs (sorting and
-threshold then use the one larger in magnitude); threshold - keep only rows whose
-sort_by value reaches it, in the units of the answer (by absolute value unless
-by_abs=false); export_path - absolute .csv or .xlsx path: the whole table after
-envelope and threshold is written there (units in column headers; an existing file is
-replaced) and the answer names the file. The answer always has the extremes of each
-component with their place, and total_rows. nodes / elements also take "selected" or
-"visible" (what the user selected in LIRA's window, or what LIRA shows after a
-fragmentation): the model must then be open in LIRA, and LIRA closes it after the
-analysis, so reopen it first.
-"""
+QUERY_REFERENCE = (
+    'nodes / elements also take "selected" or "visible" (the model must be open in LIRA). '
+    "Query arguments: see resource lira://reference/query."
+)
 
 # Reinforcement comes in fixed units, whatever LIRA's settings.
 REINFORCEMENT_UNITS = {
@@ -122,7 +110,7 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
 
     @mcp.tool(annotations=READ_ONLY)
     @lira_errors
-    @extend_doc(QUERY_HELP)
+    @extend_doc(QUERY_REFERENCE)
     async def lira_node_displacements(
         model: str | None = None,
         nodes: list[int] | str | None = None,
@@ -155,7 +143,7 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
 
     @mcp.tool(annotations=READ_ONLY)
     @lira_errors
-    @extend_doc(QUERY_HELP)
+    @extend_doc(QUERY_REFERENCE)
     async def lira_element_forces(
         model: str | None = None,
         elements: list[int] | str | None = None,
@@ -204,7 +192,7 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
 
     @mcp.tool(annotations=READ_ONLY)
     @lira_errors
-    @extend_doc(QUERY_HELP)
+    @extend_doc(QUERY_REFERENCE)
     async def lira_combination_displacements(
         model: str | None = None,
         nodes: list[int] | str | None = None,
@@ -234,7 +222,7 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
 
     @mcp.tool(annotations=READ_ONLY)
     @lira_errors
-    @extend_doc(QUERY_HELP)
+    @extend_doc(QUERY_REFERENCE)
     async def lira_combination_forces(
         model: str | None = None,
         elements: list[int] | str | None = None,
@@ -270,7 +258,7 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
 
     @mcp.tool(annotations=READ_ONLY)
     @lira_errors
-    @extend_doc(QUERY_HELP)
+    @extend_doc(QUERY_REFERENCE)
     async def lira_design_forces(
         model: str | None = None,
         elements: list[int] | str | None = None,
@@ -319,7 +307,7 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
 
     @mcp.tool(annotations=READ_ONLY)
     @lira_errors
-    @extend_doc(QUERY_HELP)
+    @extend_doc(QUERY_REFERENCE)
     async def lira_reinforcement(
         model: str | None = None,
         elements: list[int] | str | None = None,
@@ -368,7 +356,7 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
 
     @mcp.tool(annotations=READ_ONLY)
     @lira_errors
-    @extend_doc(QUERY_HELP)
+    @extend_doc(QUERY_REFERENCE)
     async def lira_fragment_loads(
         model: str | None = None,
         nodes: list[int] | str | None = None,
@@ -397,7 +385,7 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
 
     @mcp.tool(annotations=READ_ONLY)
     @lira_errors
-    @extend_doc(QUERY_HELP)
+    @extend_doc(QUERY_REFERENCE)
     async def lira_punching_loads(
         model: str | None = None,
         nodes: list[int] | str | None = None,
