@@ -151,8 +151,8 @@ async def test_pictures_and_report_are_written(tmp_path, monkeypatch):
     assert "(участок 1 на изополях)" in text
     assert "лежит на линии между опорными узлами" in text
     assert "Наинизших точек панелей подписано на изополе: 1" in text
-    assert "что составляет l/600 и не больше предельного, равного l/200 = 6,00 м / 200" in text
-    assert "точка таблицы l = 6 м: fu = l/200 = 30,00 мм" in text
+    assert "что составляет l/600." in text
+    assert "Предельный прогиб, заданный для проекта: fu = l/200 = 6,00 м / 200 = 30,00 мм." in text
     assert "|f| / fu = 10,00 / 30,00 = 0,33 — прогиб не превышает предельный." in text
     assert "Элементов: 18;" in text and "1-18" not in text  # the count, not the list
     row = [c.text for c in doc.tables[0].rows[1].cells]
