@@ -2,9 +2,9 @@
 mistake that would make the note's numbers wrong or incomplete; none changes the model."""
 
 from collections import Counter
+from itertools import product
+from math import floor
 from typing import Any
-
-import numpy as np
 
 from lira_sapr_mcp.errors import LiraInputError
 from lira_sapr_mcp.services import rpz
@@ -30,15 +30,41 @@ def unused_nodes(nodes: set[int], elements: dict[int, tuple[int, ...]]) -> list[
 def coincident_nodes(
     xyz: dict[int, tuple[float, float, float]], tolerance: float = SAME_PLACE
 ) -> list[list[int]]:
-    """Groups of nodes at one place (within ``tolerance`` m), each sorted."""
-    if not xyz:
-        return []
-    ids = np.array(sorted(xyz))
-    p = np.array([xyz[i] for i in ids])
-    keys = np.round(p / tolerance).astype(np.int64)
-    groups: dict[tuple, list[int]] = {}
-    for i, k in zip(ids.tolist(), map(tuple, keys), strict=True):
-        groups.setdefault(k, []).append(i)
+    """Connected groups of nodes separated by less than ``tolerance`` m.
+
+    A group includes transitive neighbours; its endpoints need not be within tolerance.
+    Spatial cells limit comparisons to the 3 x 3 x 3 neighbourhood of each node.
+    """
+    ids = sorted(xyz)
+    parents = list(range(len(ids)))
+    sizes = [1] * len(ids)
+
+    def root(i: int) -> int:
+        while parents[i] != i:
+            parents[i] = parents[parents[i]]
+            i = parents[i]
+        return i
+
+    cells: dict[tuple[int, int, int], list[int]] = {}
+    points = [xyz[i] for i in ids]
+    offsets = list(product((-1, 0, 1), repeat=3))
+    distance_squared = tolerance * tolerance
+    for i, (x, y, z) in enumerate(points):
+        cx, cy, cz = floor(x / tolerance), floor(y / tolerance), floor(z / tolerance)
+        for dx, dy, dz in offsets:
+            for j in cells.get((cx + dx, cy + dy, cz + dz), ()):
+                px, py, pz = points[j]
+                if (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2 < distance_squared:
+                    first, second = root(i), root(j)
+                    if first != second:
+                        if sizes[first] < sizes[second]:
+                            first, second = second, first
+                        parents[second] = first
+                        sizes[first] += sizes[second]
+        cells.setdefault((cx, cy, cz), []).append(i)
+    groups: dict[int, list[int]] = {}
+    for i, node in enumerate(ids):
+        groups.setdefault(root(i), []).append(node)
     return [g for g in groups.values() if len(g) > 1]
 
 
@@ -65,7 +91,9 @@ def _not_checked(what: str, ru: str, why: str) -> dict[str, Any]:
 def check_model(adapter: Any, model: str | None) -> dict[str, Any]:
     """On the COM thread: every check, ok or what it found."""
     path = open_model(adapter, model)
-    scale = TO_METERS.get(adapter.units().geometry, 1.0)
+    scale = TO_METERS.get(adapter.units().geometry)
+    if scale is None:
+        raise LiraInputError(f"Unknown geometry unit {adapter.units().geometry!r} in LIRA")
     xyz = {
         int(r[0]): (float(r[1]) * scale, float(r[2]) * scale, float(r[3]) * scale)
         for r in rpz._rows(adapter, path, "Nodes_Coordinates")
@@ -157,13 +185,22 @@ def check_model(adapter: Any, model: str | None) -> dict[str, Any]:
         used = {
             c for f in fits.values() for c, k in zip(f.cases, f.multipliers, strict=True) if k != 0
         } | dynamic
-        findings.append(
-            _finding(
-                "every load case is in some RSN",
-                "Каждое загружение входит хотя бы в одно РСН",
-                sorted(set(cases) - used),
+        if any(not f.identifiable or f.residual >= rpz.GOOD_FIT for f in fits.values()):
+            findings.append(
+                _not_checked(
+                    "every load case is in some RSN",
+                    "Каждое загружение входит хотя бы в одно РСН",
+                    "состав РСН не определён однозначно по перемещениям",
+                )
             )
-        )
+        else:
+            findings.append(
+                _finding(
+                    "every load case is in some RSN",
+                    "Каждое загружение входит хотя бы в одно РСН",
+                    sorted(set(cases) - used),
+                )
+            )
     kinds = Counter(fe % 100 for fe in types.values())
     return {
         "model": path,

@@ -4,6 +4,7 @@ import pytest
 from mcp import Client
 
 from fakes import FakeAdapter, fake_session
+from lira_sapr_mcp.errors import LiraInputError
 from lira_sapr_mcp.server import build_server
 from lira_sapr_mcp.services.check import (
     check_model,
@@ -107,3 +108,43 @@ def test_special_elements_lira_adds_in_the_analysis_do_not_make_the_results_fore
     out = check_model(adapter, "f.lir")
     found = {f["check"]: f for f in out["findings"]}
     assert not found["results present and of this model"]["ok"]
+
+
+@pytest.mark.parametrize("a,b", [(0.0004, 0.0006), (0, 0.0009)])
+@pytest.mark.parametrize("axis", [0, 1, 2])
+def test_coincident_nodes_across_cell_boundaries(a, b, axis):
+    first, second = [0.0] * 3, [0.0] * 3
+    first[axis], second[axis] = a, b
+    assert coincident_nodes({2: tuple(second), 1: tuple(first)}) == [[1, 2]]
+
+
+def test_coincident_nodes_use_distance_and_transitive_groups():
+    assert coincident_nodes({1: (0, 0, 0), 2: (0.001, 0, 0)}) == []
+    assert coincident_nodes({1: (-0.00049,) * 3, 2: (0.00049,) * 3}) == []
+    assert coincident_nodes({3: (0.0018, 0, 0), 1: (0, 0, 0), 2: (0.0009, 0, 0)}) == [[1, 2, 3]]
+    assert coincident_nodes({1: (-0.0001,) * 3, 2: (0.0001,) * 3}) == [[1, 2]]
+
+
+def test_coincident_nodes_of_a_large_model_take_seconds_not_minutes():
+    """K2 (O5): 200 000 nodes, one pair 0.4 mm apart; 0.75 s measured on the owner's machine."""
+    import time
+
+    import numpy as np
+
+    rng = np.random.default_rng(0)
+    count = 200_000
+    points = rng.uniform(0, 100, size=(count, 3)).round(3)
+    xyz = {i + 1: tuple(map(float, p)) for i, p in enumerate(points)}
+    xyz[count + 1] = (xyz[1][0] + 0.0004, xyz[1][1], xyz[1][2])
+    started = time.perf_counter()
+    groups = coincident_nodes(xyz)
+    assert time.perf_counter() - started < 15
+    assert groups == [[1, count + 1]]
+
+
+def test_model_check_rejects_unknown_geometry_units():
+    adapter = FakeAdapter()
+    checked_model(adapter)
+    adapter.units_geometry = "unknown"
+    with pytest.raises(LiraInputError, match="Unknown geometry unit 'unknown' in LIRA"):
+        check_model(adapter, "f.lir")
