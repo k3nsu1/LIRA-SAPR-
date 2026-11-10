@@ -18,6 +18,7 @@ from lira_sapr_mcp.tools import (
     script,
     selection,
     slabs,
+    steel,
     tables,
 )
 from lira_sapr_mcp.tools import files as file_tools
@@ -62,6 +63,7 @@ def build_server(session: LiraSession, scripts: bool = True) -> MCPServer:
     results.register(mcp, session)
     slabs.register(mcp, session)
     members.register(mcp, session)
+    steel.register(mcp, session)
     rpz.register(mcp, session)
     if scripts:
         script.register(mcp, session)

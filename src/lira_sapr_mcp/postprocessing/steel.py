@@ -26,6 +26,18 @@ class RezError(ValueError):
     """A malformed or unsupported steel result file."""
 
 
+class RezMissing(FileNotFoundError):
+    """No such file: reads as its message alone, with the path in ``filename``, as .NET's
+    FileNotFoundException(message, fileName) does."""
+
+    def __init__(self, message: str, filename: str) -> None:
+        super().__init__(message)
+        self.filename = filename
+
+    def __str__(self) -> str:
+        return str(self.args[0])
+
+
 @dataclass
 class RezSection:
     number: int
@@ -154,7 +166,8 @@ def load(path: str | Path) -> RezFile:
     """Load and validate a .rez file, retaining its original numeric strings."""
     path = Path(path)
     if not path.is_file():
-        raise FileNotFoundError("Нет файла результатов ЛИРЫ", str(path))
+        # As .NET FileNotFoundException(message, fileName): the message, the path aside
+        raise RezMissing("Нет файла результатов ЛИРЫ", str(path))
     if path.stat().st_size > MAX_BYTES:
         raise _bad(path, 0, "файл больше 50 МБ")
     data = path.read_bytes()

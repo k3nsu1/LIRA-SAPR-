@@ -40,6 +40,10 @@ class FakeAdapter:
         self.slab_w: dict[int, float] = {}  # node -> Z displacement (m) for slabs
         self.plate_as: dict[str, dict[int, float]] = {}  # component -> element -> cm2/m
         self.units_geometry = "m"
+        self.work_dir: str | None = None  # LIRA's work folder (WorkDirectory)
+
+    def directories(self) -> dict[str, str]:
+        return {"WorkDirectory": self.work_dir} if self.work_dir else {}
 
     def connect(self) -> None:
         self.connected = True

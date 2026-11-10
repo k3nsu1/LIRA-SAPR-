@@ -211,8 +211,11 @@ def test_change_detection_is_case_insensitive_and_no_saved_hash_is_not_changed(t
 
 
 def test_absent_and_oversized_files(tmp_path):
-    with pytest.raises(FileNotFoundError, match="Нет файла результатов ЛИРЫ"):
+    with pytest.raises(FileNotFoundError) as absent:
         steel.load(tmp_path / "absent.rez")
+    # As FileNotFoundException(message, fileName): the message alone, the path aside
+    assert str(absent.value) == "Нет файла результатов ЛИРЫ"
+    assert absent.value.filename == str(tmp_path / "absent.rez")
     path = tmp_path / "huge.rez"
     with path.open("wb") as stream:
         stream.truncate(steel.MAX_BYTES + 1)
