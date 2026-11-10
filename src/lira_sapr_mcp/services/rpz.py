@@ -93,6 +93,20 @@ def multipliers(
     return fits, dynamic
 
 
+def _dcl_factors(rows: list[list]) -> dict[int, dict[str, float]]:
+    """Per load case, γf and the long-term share from the DCL input table: number, name,
+    kind, (empty), sign, exclusion group, γf, long-term share, ... (K2, examples 01 and
+    04). DCL has no coefficient of a load case in each RSN. Rows it cannot read are left
+    out rather than guessed."""
+    out = {}
+    for r in rows:
+        try:
+            out[int(r[0])] = {"gamma_f": float(r[6]), "long_term_share": float(r[7])}
+        except (TypeError, ValueError, IndexError):
+            continue
+    return out
+
+
 def model_facts(adapter: Any, model: str | None) -> dict[str, Any]:
     """On the COM thread: load cases, RSN with their make-up, stiffnesses and elements."""
     path = open_model(adapter, model)
@@ -101,6 +115,9 @@ def model_facts(adapter: Any, model: str | None) -> dict[str, Any]:
         for r in _rows(adapter, path, "LoadCases")
         if r and r[0] is not None
     ]
+    factors = _dcl_factors(_rows(adapter, path, "DCL"))
+    for c in cases:
+        c.update(factors.get(c["number"], {}))
     names = {c["number"]: c["name"] for c in cases}
     count = Counter(
         int(r[1])
@@ -271,13 +288,17 @@ def write_facts(facts: dict[str, Any], out_dir: Path) -> str:
     out_dir.mkdir(parents=True, exist_ok=True)
     doc = Document()
     doc.add_paragraph("Загружения расчётной схемы")
-    t = doc.add_table(rows=1, cols=3)
+    t = doc.add_table(rows=1, cols=5)
     t.style = "Table Grid"
-    for cell, h in zip(t.rows[0].cells, ("№", "Наименование", "Вид"), strict=True):
+    heads = ("№", "Наименование", "Вид", "γf", "Доля длительной")
+    for cell, h in zip(t.rows[0].cells, heads, strict=True):
         cell.text = h
     for c in facts["load_cases"]:
-        for cell, v in zip(t.add_row().cells, (c["number"], c["name"], c["kind"]), strict=True):
-            cell.text = "" if v is None else str(v)
+        values = (c["number"], c["name"], c["kind"], c.get("gamma_f"), c.get("long_term_share"))
+        for cell, v in zip(t.add_row().cells, values, strict=True):
+            cell.text = (
+                "" if v is None else f"{v:g}".replace(".", ",") if isinstance(v, float) else str(v)
+            )
     if facts.get("combinations"):
         doc.add_paragraph("Расчётные сочетания нагрузок (РСН): множители к результатам загружений")
         t = doc.add_table(rows=1, cols=3)
@@ -286,7 +307,7 @@ def write_facts(facts: dict[str, Any], out_dir: Path) -> str:
             cell.text = h
         for c in facts["combinations"]:
             parts = c.get("warning") or make_up_text(c.get("make_up", []))
-            if c.get("make_up") is not None and not c.get("exact"):
+            if "warning" not in c and c.get("make_up") is not None and not c.get("exact"):
                 parts += " (приближённо: РСН содержит динамику или не сводится к сумме)"
             for cell, v in zip(
                 t.add_row().cells, (c["number"], c["name"], parts or "—"), strict=True
@@ -304,6 +325,35 @@ def write_facts(facts: dict[str, Any], out_dir: Path) -> str:
             cell.text = "" if v is None else str(v)
     path = out_dir / f"{Path(facts['model']).stem}_rpz_facts.docx"
     doc.save(path)
+    return str(path)
+
+
+FACTS_SCHEMA = "lira-sapr-mcp/rpz-facts"
+FACTS_VERSION = 1  # draft, docs/decisions/0006-lira-plus-exchange.md
+
+
+def write_facts_json(facts: dict[str, Any], out_dir: Path) -> str:
+    """The same facts for LIRA+ (draft exchange format 0006): the model file with its
+    SHA-256 (upper case, as LiraRez.Hash), load cases, RSN and stiffnesses."""
+    import hashlib
+    import json
+
+    from lira_sapr_mcp import __version__
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    model = Path(facts["model"])
+    sha = hashlib.sha256(model.read_bytes()).hexdigest().upper() if model.is_file() else None
+    data = {
+        "schema": FACTS_SCHEMA,
+        "version": FACTS_VERSION,
+        "generator": f"lira-sapr-mcp {__version__}",
+        "model": {"path": str(model), "sha256": sha},
+        "load_cases": facts["load_cases"],
+        "combinations": facts.get("combinations", []),
+        "stiffnesses": facts["stiffnesses"],
+    }
+    path = out_dir / f"{model.stem}_rpz_facts.json"
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     return str(path)
 
 

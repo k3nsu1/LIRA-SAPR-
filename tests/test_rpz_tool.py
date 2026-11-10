@@ -102,6 +102,63 @@ def test_facts_give_cases_stiffnesses_and_the_make_up_of_an_rsn():
     assert [m["multiplier"] for m in rsn["make_up"]] == [round(1 / 1.1, 4), round(0.35 / 1.2, 4)]
 
 
+def test_load_cases_carry_gamma_f_and_the_long_term_share_from_dcl(tmp_path):
+    """K2 N2: DCL holds per load case its γf and long-term share (checked on example 04)."""
+    from docx import Document
+
+    adapter = FakeAdapter()
+    model(adapter)
+    adapter.docs["f.lir"]["tables"]["DCL"] = [
+        [None] * 9,  # LIRA's header row
+        ["1", "Собственный вес", "Постоянное(П)", None, "+", "0", "1.1", "1", "0"],
+        ["2", "Полезная", "Кратковременное(К)", None, "+", "0", "1.2", "0.35", "0"],
+    ]
+    facts = rpz.model_facts(adapter, "f.lir")
+    by = {c["number"]: c for c in facts["load_cases"]}
+    assert (by[1]["gamma_f"], by[1]["long_term_share"]) == (1.1, 1.0)
+    assert (by[2]["gamma_f"], by[2]["long_term_share"]) == (1.2, 0.35)
+    assert "gamma_f" not in by[3]  # not in DCL: nothing is made up
+    table = Document(rpz.write_facts(facts, tmp_path)).tables[0]
+    assert [c.text for c in table.rows[0].cells] == [
+        "№",
+        "Наименование",
+        "Вид",
+        "γf",
+        "Доля длительной",
+    ]
+    assert [c.text for c in table.rows[2].cells][3:] == ["1,2", "0,35"]
+    assert [c.text for c in table.rows[3].cells][3:] == ["", ""]
+
+
+def open_text(path: str) -> str:
+    from pathlib import Path
+
+    return Path(path).read_text(encoding="utf-8")
+
+
+def test_facts_json_for_lira_plus_carries_the_model_hash_and_the_facts(tmp_path):
+    """K2 N6, draft exchange format (docs/decisions/0006-lira-plus-exchange.md)."""
+    import hashlib
+    import json
+
+    adapter = FakeAdapter()
+    model(adapter)
+    lir = tmp_path / "f.lir"
+    lir.write_bytes(b"model bytes")
+    facts = rpz.model_facts(adapter, "f.lir") | {"model": str(lir)}
+    written = rpz.write_facts_json(facts, tmp_path)
+    data = json.loads(open_text(written))
+    assert (data["schema"], data["version"]) == ("lira-sapr-mcp/rpz-facts", 1)
+    assert data["model"] == {
+        "path": str(lir),
+        "sha256": hashlib.sha256(b"model bytes").hexdigest().upper(),
+    }
+    assert [c["name"] for c in data["load_cases"]] == ["Собственный вес", "Полезная", "Ветер"]
+    (rsn,) = data["combinations"]
+    assert rsn["exact"] and [m["case"] for m in rsn["make_up"]] == [1, 2]
+    assert data["stiffnesses"][0]["number"] == 1
+
+
 def test_reactions_of_an_rsn_are_its_multipliers_times_the_cases():
     adapter = FakeAdapter()
     model(adapter)
@@ -242,3 +299,20 @@ def test_proportional_cases_are_not_reported_as_exact_or_used_for_reactions():
     assert row["ambiguous_cases"] == [1, 2]
     with pytest.raises(LiraInputError, match="not uniquely determined"):
         rpz.reactions(adapter, "f.lir", [1], None, 5)
+
+
+def test_the_docx_names_only_the_true_reason_an_rsn_make_up_is_unknown(tmp_path):
+    """Review 2026-11-10: undetermined multipliers were also called 'dynamic or not a sum'."""
+    from docx import Document
+
+    adapter = FakeAdapter()
+    model(adapter)
+    adapter.node_displacements = lambda path, ns, cases: [
+        {"node": n, "case": c, "Z": n * c} for n in ns for c in (1, 2)
+    ]
+    adapter.combination_displacements = lambda path, ns, combos: [
+        {"node": n, "combination": 5, "Z": n * 3.7} for n in ns
+    ]
+    facts = rpz.model_facts(adapter, "f.lir")
+    cell = Document(rpz.write_facts(facts, tmp_path)).tables[1].rows[1].cells[2].text
+    assert cell == "Множители загружений по отдельности не определены: 1, 2"
