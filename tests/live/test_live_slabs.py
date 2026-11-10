@@ -81,8 +81,15 @@ async def analysed(client, text, path):
     return res.structured_content
 
 
+# The server has no limits of its own (Kazakhstan: set per project, K1.2): the checks give a
+# project's, as the offline tests do (tests/test_slabs_tool.py, OLD_TOOL).
+PROJECT = {"deflection_limit": 200, "settlement_limit_mm": 150, "relative_settlement_limit": 0.003}
+
+
 async def deflections(client, path, **args):
-    res = await client.call_tool("lira_slab_deflections", {"model": path, "load_case": 1} | args)
+    res = await client.call_tool(
+        "lira_slab_deflections", {"model": path, "load_case": 1} | PROJECT | args
+    )
     assert not res.is_error, res.content
     return res.structured_content
 
@@ -123,7 +130,7 @@ async def test_beam_slab_and_cantilever_match_plate_theory(mcp, workdir):
     assert slab["x_m"] == pytest.approx(2)
     assert slab["span_m"] == pytest.approx(4)
     assert slab["deflection_mm"] == pytest.approx(-(2**4) / (8 * D) * 1000, rel=0.03)
-    assert slab["allowed_mm"] == pytest.approx(20 + 10 / 3, abs=0.01)  # 4 m: 3 to 6 m
+    assert slab["allowed_mm"] == pytest.approx(4000 / 200)  # the project's l/200 of 4 m
     print(f"example 8: beam slab {b['slabs'][0]}, cantilever {slab}")
 
 

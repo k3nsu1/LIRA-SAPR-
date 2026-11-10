@@ -152,8 +152,10 @@ def test_picture_window_is_the_models_even_with_a_longer_name_open(lira, adapter
             doc.Activate()
             return win32gui.GetWindowText(win32gui.GetParent(adapter._view_window(doc)))
 
-        assert lira(window_title, short) == "lmcp_view.lir"
-        assert lira(window_title, longer) == "lmcp_view2.lir"
+        # LIRA titles the window "lmcp_view.lir" or, since 2026-11-10 here, "lmcp_view":
+        # either way it must be this model's window, not the longer-named one's.
+        assert lira(window_title, short) in ("lmcp_view.lir", "lmcp_view")
+        assert lira(window_title, longer) in ("lmcp_view2.lir", "lmcp_view2")
     finally:
         for ref in (short, longer):
             lira(adapter.close_document, ref, True)
