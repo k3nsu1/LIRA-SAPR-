@@ -30,10 +30,10 @@ class Pressure:
 
     n_total: float  # kN, N plus the footing and soil
     p: float  # mean
-    p_max: float  # largest at an edge or corner
-    p_min: float
-    edge_x: float  # largest edge pressure from the moment along l
-    edge_y: float  # along b
+    p_max: float | None  # largest at an edge or corner
+    p_min: float | None
+    edge_x: float | None  # largest edge pressure from the moment along l
+    edge_y: float | None  # along b
     ex: float  # m, eccentricity along l
     ey: float  # along b
     r: float
@@ -66,7 +66,28 @@ def pressure(
         raise ValueError("the footing is lifted: N with its weight is not a compression")
     ex, ey = abs(my) / total, abs(mx) / total
     mean = total / area
-    within = ex <= l / 6 + 1e-12 and ey <= b / 6 + 1e-12
+    within = 6 * ex / l + 6 * ey / b <= 1 + 1e-12
+    reason = None
+    if ex >= l / 2 or ey >= b / 2:
+        reason = "не определено — равнодействующая на границе подошвы или вне её"
+    elif not within and ex > 0 and ey > 0:
+        reason = "не определено — нагрузка вне ядра по двум осям"
+    if reason:
+        return Pressure(
+            total,
+            mean,
+            None,
+            None,
+            None,
+            None,
+            ex,
+            ey,
+            r,
+            [
+                ("p ≤ R (п. 4.6.1)", mean <= r, f"{mean:.1f} ≤ {r:g}"),
+                ("контакт подошвы", False, reason),
+            ],
+        )
     edge_x = mean * (1 + 6 * ex / l) if ex <= l / 6 + 1e-12 else 2 * total / (3 * b * (l / 2 - ex))
     edge_y = mean * (1 + 6 * ey / b) if ey <= b / 6 + 1e-12 else 2 * total / (3 * l * (b / 2 - ey))
     if within:
@@ -104,6 +125,12 @@ class Fit:
     cases: list[int]
     multipliers: list[float]
     residual: float
+    rank: int = 0
+    ambiguous_cases: list[int] = field(default_factory=list)
+
+    @property
+    def identifiable(self) -> bool:
+        return bool(self.cases) and self.rank == len(self.cases)
 
 
 def fit_combination(
@@ -118,6 +145,8 @@ def fit_combination(
     the rounded results: K1.7 gave -0.0001 for a canopy load the RSN did not hold); the others
     are fitted again without it. Multipliers below ``tolerance`` are zero."""
     cases = sorted(by_case)
+    if not cases:
+        return Fit([], [], float("inf"))
     a = np.column_stack([np.ravel(by_case[c]) for c in cases])
     y = np.ravel(combination)
     largest = float(np.max(np.abs(y))) if y.size else 0.0
@@ -126,6 +155,16 @@ def fit_combination(
     # canopy load seen at slab nodes) keeps its weight in the solution.
     norm = np.max(np.abs(a), axis=0) if a.size else np.ones(len(cases))
     norm = np.where(norm > 0, norm, 1.0)
+    scaled = a / norm
+    # The null space identifies ALL dependent columns, including dependence between
+    # three or more cases and cases invisible in the sample. Test before pruning.
+    _, singular, vh = np.linalg.svd(scaled, full_matrices=scaled.shape[0] < len(cases))
+    cutoff = (singular[0] if singular.size else 0.0) * max(
+        tolerance, max(scaled.shape) * np.finfo(float).eps
+    )
+    rank = int(np.sum(singular > cutoff))
+    null = vh[rank:]
+    ambiguous = [c for i, c in enumerate(cases) if null.size and np.linalg.norm(null[:, i]) > 1e-10]
     keep = np.ones(len(cases), dtype=bool)
     k = np.zeros(len(cases))
     for _ in range(2):
@@ -139,4 +178,4 @@ def fit_combination(
         keep &= ~small
     k = np.where(np.abs(k) < tolerance, 0.0, k)
     residual = float(np.max(np.abs(a @ k - y))) / scale if y.size else 0.0
-    return Fit(cases, [float(v) for v in k], residual)
+    return Fit(cases, [float(v) for v in k], residual, rank, ambiguous)

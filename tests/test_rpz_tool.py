@@ -226,3 +226,19 @@ def test_loads_on_fragment_in_tf_are_checked_in_kn():
     (f,) = rpz.footing_checks([{"nodes": [1], "l": 2, "b": 2, "d": 1.5, "R": 250}], forces)
     assert f["N_kN"] == pytest.approx(980.7) and f["p_kPa"] == pytest.approx(275.2, abs=0.1)
     assert not f["ok"]  # 275 kPa > R = 250; with tf read as kN it was 55 kPa and "ok"
+
+
+def test_proportional_cases_are_not_reported_as_exact_or_used_for_reactions():
+    adapter = FakeAdapter()
+    model(adapter)
+    adapter.node_displacements = lambda path, ns, cases: [
+        {"node": n, "case": c, "Z": n * c} for n in ns for c in (1, 2)
+    ]
+    adapter.combination_displacements = lambda path, ns, combos: [
+        {"node": n, "combination": 5, "Z": n * 3.7} for n in ns
+    ]
+    row = rpz.model_facts(adapter, "f.lir")["combinations"][0]
+    assert row["exact"] is False
+    assert row["ambiguous_cases"] == [1, 2]
+    with pytest.raises(LiraInputError, match="not uniquely determined"):
+        rpz.reactions(adapter, "f.lir", [1], None, 5)

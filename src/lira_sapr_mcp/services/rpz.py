@@ -138,7 +138,14 @@ def model_facts(adapter: Any, model: str | None) -> dict[str, Any]:
                     for case, k in zip(fit.cases, fit.multipliers, strict=True)
                     if round(k, 4) != 0
                 ]
-                row["exact"] = fit.residual < GOOD_FIT
+                row["exact"] = fit.identifiable and fit.residual < GOOD_FIT
+                row["ambiguous_cases"] = fit.ambiguous_cases
+                if not fit.identifiable:
+                    row["warning"] = (
+                        "Множители загружений по отдельности не определены: "
+                        + ", ".join(map(str, fit.ambiguous_cases))
+                    )
+                    row["make_up"] = []
                 row["residual"] = float(f"{fit.residual:.2e}")
             rsn.append(row)
         out["combinations"] = rsn
@@ -169,6 +176,11 @@ def reactions(
     fit = fits.get(combination)
     if fit is None:
         raise LiraInputError(f"No load combination {combination}")
+    if not fit.identifiable:
+        raise LiraInputError(
+            f"RSN {combination}: multipliers not uniquely determined; "
+            f"indistinguishable load cases {fit.ambiguous_cases}"
+        )
     if fit.residual >= GOOD_FIT:
         raise LiraInputError(
             f"RSN {combination} is not a sum of static load cases (residual {fit.residual:.1e}"
@@ -230,8 +242,8 @@ def footing_checks(
                 "d_m": f["d"],
                 "R_kPa": f["R"],
                 "p_kPa": round(p.p, 1),
-                "p_max_kPa": round(p.p_max, 1),
-                "p_min_kPa": round(p.p_min, 1),
+                "p_max_kPa": round(p.p_max, 1) if p.p_max is not None else None,
+                "p_min_kPa": round(p.p_min, 1) if p.p_min is not None else None,
                 "checks": [{"check": w, "ok": ok, "numbers": s} for w, ok, s in p.checks],
                 "ok": p.ok,
             }
@@ -273,7 +285,7 @@ def write_facts(facts: dict[str, Any], out_dir: Path) -> str:
         for cell, h in zip(t.rows[0].cells, ("№", "Наименование", "Состав"), strict=True):
             cell.text = h
         for c in facts["combinations"]:
-            parts = make_up_text(c.get("make_up", []))
+            parts = c.get("warning") or make_up_text(c.get("make_up", []))
             if c.get("make_up") is not None and not c.get("exact"):
                 parts += " (приближённо: РСН содержит динамику или не сводится к сумме)"
             for cell, v in zip(

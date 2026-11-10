@@ -77,3 +77,42 @@ def test_a_load_case_with_a_noise_multiplier_is_not_in_the_rsn():
     # a case that is in the RSN, however small its displacements, stays
     fit = fit_combination(by_case, rsn + 1.0 * by_case[3])
     assert fit.multipliers[2] == pytest.approx(1.0, abs=1e-3)
+
+
+def test_proportional_cases_do_not_identify_individual_multipliers():
+    rng = np.random.default_rng(1)
+    base = rng.normal(size=300)
+    cases = {1: base, 2: base * 0.5, 3: rng.normal(size=300)}
+    fit = fit_combination(cases, 1.1 * cases[1] + 1.3 * cases[2] + 0.9 * cases[3])
+    assert fit.residual < 1e-12
+    assert not fit.identifiable
+    assert fit.ambiguous_cases == [1, 2]
+
+
+def test_empty_displacements_do_not_prove_a_combination():
+    fit = fit_combination({1: np.array([])}, np.array([]))
+    assert not fit.identifiable
+
+
+def test_nearly_proportional_cases_are_ambiguous_at_result_precision():
+    rng = np.random.default_rng(1)
+    base = rng.normal(size=300)
+    cases = {1: base, 2: base * 0.5 + rng.normal(size=300) * 1e-7}
+    fit = fit_combination(cases, 1.1 * cases[1] + 1.3 * cases[2])
+    assert not fit.identifiable
+    assert fit.ambiguous_cases == [1, 2]
+
+
+@pytest.mark.parametrize("mx,my", [(500 / 3, 500 / 3), (150, 200)])
+def test_biaxial_load_outside_diamond_core_has_no_pressure_verdict(mx, my):
+    p = pressure(500, mx, my, 2, 2, 0, 300)
+    assert p.p == 125
+    assert p.p_max is None and p.p_min is None
+    assert not p.ok
+    assert any("не определено" in text for _, _, text in p.checks)
+
+
+@pytest.mark.parametrize("moment", [500, 600])
+def test_resultant_on_or_outside_footprint_has_no_contact_solution(moment):
+    p = pressure(500, 0, moment, 2, 2, 0, 300)
+    assert not p.ok and p.p_max is None
