@@ -3,7 +3,7 @@ name = "lira-sapr-mcp"
 version = "0.2.0"
 description = "MCP server that lets AI agents drive LIRA-SAPR (LIRA-FEM) through its COM API"
 readme = "README.md"
-license = "MIT"
+license = "Unlicense"
 license-files = ["LICENSE"]
 authors = [{ name = "k3nsu1" }]
 requires-python = ">=3.13"

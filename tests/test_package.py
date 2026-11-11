@@ -44,7 +44,7 @@ def test_wheel_carries_reference_and_entry_point(tmp_path):
         metadata = zf.read(f"{info}/METADATA").decode("utf-8")
     assert "lira_sapr_mcp/reference/tables.md" in names
     assert "lira_sapr_mcp/reference/query.md" in names
-    assert f"{info}/licenses/LICENSE" in names and "License-Expression: MIT" in metadata
+    assert f"{info}/licenses/LICENSE" in names and "License-Expression: Unlicense" in metadata
     assert b"lira-sapr-mcp = lira_sapr_mcp.__main__:main" in entry_points
 
 
