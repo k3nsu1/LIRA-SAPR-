@@ -48,6 +48,27 @@ def test_a_mosaic_is_told_from_the_bare_scheme_by_its_colours():
     assert rv.mosaic_colours(*picture([(255, 255, 255)])) == 0
 
 
+def test_a_bare_scheme_with_coloured_numbers_is_not_a_mosaic_without_its_scale():
+    """Example 12: a steel mosaic hidden by its own command left the scheme with coloured
+    node and element numbers, 14 colours; only a mosaic has its scale across the top."""
+
+    def picture(scale: bool):
+        w, h, rows = 200, 400, []
+        for k in range(h):
+            if k < 40:
+                colour = (255, 0, 0) if scale else (255, 255, 255)
+                rows += [*colour, 255] * w
+            else:  # the numbers: short strokes of many colours on white
+                b, g, r = (0, 32 * (k % 8), 255) if k % 2 else (255, 32 * (k % 8), 0)
+                rows += [b, g, r, 255] * 60 + [255, 255, 255, 255] * (w - 60)
+        return w, h, bytes(rows)
+
+    bare = picture(scale=False)
+    assert rv.mosaic_colours(*bare) >= rv.MOSAIC_COLOURS  # the colours alone would pass it
+    assert rv.scale_band(*bare) < rv.SCALE_BAND and not rv.has_mosaic(*bare)
+    assert rv.has_mosaic(*picture(scale=True))
+
+
 def test_keys_reach_the_item_from_any_current_one():
     keys = rv.keys_to(6, 3)
     assert keys[:8] == [rv.VK_UP] * 8  # past the top: Home does not work in LIRA's list
@@ -63,13 +84,18 @@ def test_keys_reach_the_item_from_any_current_one():
         ("My:rsn5", ("My", "rsn", 5)),
         ("Qz:case3", ("Qz", "load_cases", 3)),
         ("steel_1LS", ("steel_1LS", "load_cases", None)),
+        ("steel_sel_max", ("steel_sel_max", "load_cases", None)),
+        ("steel_sec_stab_Y1", ("steel_sec_stab_Y1", "load_cases", None)),
+        ("steel_sel_sec_normal", ("steel_sel_sec_normal", "load_cases", None)),
     ],
 )
 def test_picture_specs(spec, parsed):
     assert rp.parse_spec(spec) == parsed
 
 
-@pytest.mark.parametrize("spec", ["N", "N:max", "Nx:MAXIMUM", "steel_LB:rsn2"])
+@pytest.mark.parametrize(
+    "spec", ["N", "N:max", "Nx:MAXIMUM", "steel_LB:rsn2", "steel_sec_x", "steel_sec_web:rsn"]
+)
 def test_wrong_specs_are_refused(spec):
     with pytest.raises(LiraInputError):
         rp.parse_spec(spec)
@@ -209,14 +235,17 @@ async def test_a_stiffness_with_no_elements_is_an_error_not_an_empty_picture(tmp
 
 
 class Window:
-    """LIRA's view as the adapter captures it: a mosaic command toggles the mosaic."""
+    """LIRA's view as the adapter captures it: a mosaic command toggles the mosaic, a
+    choice of LIRA's menu (assigned / selected sections, element types) does not."""
+
+    CHOICES = (rv.SHOW_CHECK, rv.SHOW_SELECTED, rv.ALL_ELEMENT_TYPES)
 
     def __init__(self, shown: bool, has_result: bool = True):
         self.shown, self.has_result, self.commands = shown, has_result, []
 
     def StartCmd(self, cmd):  # LIRA's name
         self.commands.append(cmd)
-        if self.has_result:
+        if self.has_result and cmd not in self.CHOICES:
             self.shown = not self.shown
 
     def picture(self, ref, view):
@@ -247,3 +276,44 @@ def test_a_mosaic_lira_has_nothing_for_is_not_taken_for_the_old_one():
     window = Window(shown=True, has_result=False)  # N still drawn, no steel check
     *_, drawn = adapter_on(window)._draw_mosaic("m", "xoz", "steel_1LS")
     assert not drawn and len(window.commands) == 3
+
+
+def test_steel_mosaics_are_the_items_of_lira_menu():
+    """Menu "Результаты (металл)" of LIRA 2024 R2.3 (Visor.resources.dll, menu 12003),
+    each drawn on example 12; 5592 / 5594 / 5596 are not steel mosaics."""
+    commands = {name: rv.MOSAICS[name][0] for name in rv.STEEL}
+    assert {k: v for k, v in commands.items() if "_sec_" not in k} == {
+        "steel_1LS": 3814,
+        "steel_2LS": 3816,
+        "steel_LB": 3817,
+        "steel_max": 5090,
+        "steel_sel_1LS": 3815,
+        "steel_sel_2LS": 3823,
+        "steel_sel_LB": 3818,
+        "steel_sel_max": 5098,
+    }
+    assert commands["steel_sec_normal"] == commands["steel_sel_sec_normal"] == 45195
+    assert commands["steel_sec_stab_2planes"] == 45207
+    assert not {5592, 5594, 5596} & set(commands.values())
+    assert set(rp.WORDS) == set(rv.MOSAICS)  # every mosaic has its words in file names
+
+
+@pytest.mark.parametrize(
+    ("mosaic", "show"),
+    [("steel_sec_stab_Y1", rv.SHOW_CHECK), ("steel_sel_sec_stab_Y1", rv.SHOW_SELECTED)],
+)
+def test_a_steel_mosaic_by_sections_first_sets_lira_choices(mosaic, show):
+    window = Window(shown=False)
+    *_, drawn = adapter_on(window)._draw_mosaic("m", "xoz", mosaic)
+    assert drawn and window.commands == [show, rv.ALL_ELEMENT_TYPES, 45205]
+
+
+def test_a_steel_mosaic_per_element_needs_no_choice():
+    window = Window(shown=False)
+    adapter_on(window)._draw_mosaic("m", "xoz", "steel_sel_LB")
+    assert window.commands == [3818]
+
+
+def test_file_names_of_steel_pictures():
+    (p,) = [p for p in rp.plan([ankara(pictures=["steel_sel_sec_flange"])]) if p.appendix == "Ж"]
+    assert rp.file_name(p, 3) == "Ж03 Усилия в арке - сталь подбор по устойчивости полки.png"

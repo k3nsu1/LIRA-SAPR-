@@ -36,11 +36,59 @@ MOSAICS: dict[str, tuple[int, str]] = {
     "disp_Y": (5204, "Мозаика перемещений по Y(G)"),
     "disp_Z": (5206, "Мозаика перемещений по Z(G)"),
     "Rz": (5243, "Мозаика напряжений по Rz"),
-    "steel_1LS": (5592, "проверка назначенных сечений по 1 предельному состоянию"),
-    "steel_2LS": (5594, "проверка назначенных сечений по 2 предельному состоянию"),
-    "steel_LB": (5596, "проверка назначенных сечений по местной устойчивости"),
-    "steel_max": (5090, "огибающая максимумов проверок по 1 ПС, 2 ПС, МУ"),
 }
+# The steel results (LIR-STK), % of the bearing capacity. Numbers from LIRA's own menu
+# "Результаты (металл)" (menu 12003 of Visor.resources.dll) and checked on example 12,
+# 2026-11-11: they draw in either results mode, the "Металл" tab is not needed (5592 /
+# 5594 / 5596 used before are not these mosaics and change nothing).
+# Per element, one value for the whole element: the check of the assigned sections ...
+_ASSIGNED, _SELECTED = "проверки назначенных сечений", "проверки подобранных сечений"
+STEEL_ELEMENT: dict[str, tuple[int, str]] = {
+    "steel_1LS": (3814, f"Мозаика результатов {_ASSIGNED} по 1 предельному состоянию"),
+    "steel_2LS": (3816, f"Мозаика результатов {_ASSIGNED} по 2 предельному состоянию"),
+    "steel_LB": (3817, f"Мозаика результатов {_ASSIGNED} по местной устойчивости"),
+    "steel_max": (5090, f"Мозаика максимальных результатов {_ASSIGNED} по 1ПС, 2ПС, МУ"),
+    # ... and the check of the sections LIRA selected.
+    "steel_sel_1LS": (3815, f"Мозаика результатов {_SELECTED} по 1 предельному состоянию"),
+    "steel_sel_2LS": (3823, f"Мозаика результатов {_SELECTED} по 2 предельному состоянию"),
+    "steel_sel_LB": (3818, f"Мозаика результатов {_SELECTED} по местной устойчивости"),
+    "steel_sel_max": (5098, f"Мозаика максимальных результатов {_SELECTED} по 1ПС, 2ПС, МУ"),
+}
+# By the design sections of SP / DBN: one check each. LIRA draws them for the assigned or
+# the selected sections as set by its menu items "Показывать результаты проверки" (45198)
+# / "...подбора" (45199), and for the element types set by its "Для всех типов элементов"
+# (45191) and the like. These items are a choice, not a switch: given twice they stay
+# (checked on example 12). The server sets them before the mosaic; they stay so after.
+STEEL_SECTION_CHECKS: dict[str, tuple[int, str]] = {
+    "normal": (45195, "нормальным напряжениям"),
+    "shear": (45196, "касательным напряжениям"),
+    "reduced": (45197, "приведенным напряжениям"),
+    "stab_Y1": (45205, "устойчивости относительно Y1"),
+    "stab_Z1": (45206, "устойчивости относительно Z1"),
+    "stab_2planes": (45207, "устойчивости в двух плоскостях"),
+    "slender_Y1": (45208, "гибкости относительно Y1"),
+    "slender_Z1": (45209, "гибкости относительно Z1"),
+    "slender_ratio": (45210, "соотношению гибкостей"),
+    "beam_stab": (45203, "общей устойчивости балки"),
+    "web": (45200, "устойчивости стенки"),
+    "flange": (45201, "устойчивости полки"),
+    "deflection": (45202, "относительному прогибу балки"),
+    "ribs": (45204, "шагу ребер"),
+    "lattice": (45213, "шагу решетки"),
+}
+SHOW_CHECK, SHOW_SELECTED, ALL_ELEMENT_TYPES = 45198, 45199, 45191
+STEEL_SECTION: dict[str, tuple[int, str]] = {}
+PREPARE: dict[str, tuple[int, ...]] = {}  # commands given before the mosaic's own
+for _key, (_cmd, _words) in STEEL_SECTION_CHECKS.items():
+    for _prefix, _show, _which in (
+        ("steel_sec_", SHOW_CHECK, _ASSIGNED),
+        ("steel_sel_sec_", SHOW_SELECTED, _SELECTED),
+    ):
+        STEEL_SECTION[_prefix + _key] = (_cmd, f"Мозаика результатов {_which} по {_words}")
+        PREPARE[_prefix + _key] = (_show, ALL_ELEMENT_TYPES)
+MOSAICS.update(STEEL_ELEMENT)
+MOSAICS.update(STEEL_SECTION)
+STEEL = frozenset(STEEL_ELEMENT) | frozenset(STEEL_SECTION)
 VK_UP, VK_DOWN, VK_RETURN = 0x26, 0x28, 0x0D
 WM_KEYDOWN, WM_MOUSEMOVE, WM_LBUTTONDOWN, WM_LBUTTONUP = 0x100, 0x200, 0x201, 0x202
 CB_GETCOUNT, CB_GETCURSEL, CB_GETLBTEXT, CB_GETLBTEXTLEN = 0x146, 0x147, 0x148, 0x149
@@ -78,6 +126,29 @@ def mosaic_colours(width: int, height: int, bgra: bytes) -> int:
 
 
 MOSAIC_COLOURS = 8  # fewer: LIRA did not draw the mosaic
+
+
+def scale_band(width: int, height: int, bgra: bytes) -> float:
+    """The widest row of strong colours in the top tenth of a picture, as a share of its
+    width: LIRA draws a mosaic's scale there across the window (0.67 to 0.94 on examples 04
+    and 12, 2026-11-11), the bare scheme has none (0.03 to 0.09). The colours alone are not
+    enough: a bare scheme with coloured node and element numbers had 14 of them (example 12,
+    a steel mosaic hidden by giving its command twice)."""
+    import numpy as np
+
+    px = np.frombuffer(bgra, np.uint8).reshape(height, width, 4)[:, :, :3].astype(np.int16)
+    top = px[: max(1, height // 10)]
+    return float(((top.max(2) - top.min(2)) > 60).mean(1).max())
+
+
+SCALE_BAND = 0.4  # less: no scale, so no mosaic (or the user hid LIRA's scale)
+
+
+def has_mosaic(width: int, height: int, bgra: bytes) -> bool:
+    return (
+        mosaic_colours(width, height, bgra) >= MOSAIC_COLOURS
+        and scale_band(width, height, bgra) >= SCALE_BAND
+    )
 
 
 def keys_to(count: int, index: int) -> list[int]:

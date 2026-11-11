@@ -12,7 +12,12 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from lira_sapr_mcp.adapters.result_view import ENVELOPES, MOSAICS
+from lira_sapr_mcp.adapters.result_view import (
+    ENVELOPES,
+    MOSAICS,
+    STEEL,
+    STEEL_SECTION_CHECKS,
+)
 from lira_sapr_mcp.errors import LiraInputError
 from lira_sapr_mcp.services.slabs import open_model
 
@@ -22,7 +27,6 @@ STEEL_GROUP = ("N:MAXIMUM", "N:MINIMUM", "steel_1LS", "steel_LB", "disp_Z:rsn")
 FOUNDATION = ("Rz:MINIMUM", "Rz:MAXIMUM", "Rz:rsn", "disp_Z:rsn")
 SCHEME_VIEWS = ("isometric", "xoy", "xoz")
 VIEWS = ("isometric", "xoy", "xoz", "current")
-STEEL = {m for m in MOSAICS if m.startswith("steel_")}
 WORDS = {
     "N": "N",
     "Qy": "Qy",
@@ -38,7 +42,14 @@ WORDS = {
     "steel_2LS": "сталь 2ПС",
     "steel_LB": "сталь местная устойчивость",
     "steel_max": "сталь огибающая",
+    "steel_sel_1LS": "сталь подбор 1ПС",
+    "steel_sel_2LS": "сталь подбор 2ПС",
+    "steel_sel_LB": "сталь подбор местная устойчивость",
+    "steel_sel_max": "сталь подбор огибающая",
 }
+for _key, (_, _words) in STEEL_SECTION_CHECKS.items():
+    WORDS["steel_sec_" + _key] = "сталь по " + _words
+    WORDS["steel_sel_sec_" + _key] = "сталь подбор по " + _words
 ITEM_WORDS = {"MAXIMUM": "огибающая max", "MINIMUM": "огибающая min", "MAX ABS": "max abs"}
 
 

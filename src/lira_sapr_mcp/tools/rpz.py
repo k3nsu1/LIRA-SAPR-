@@ -240,11 +240,19 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
         "groups": [{"title": "Расчет балок перекрытия", "stiffnesses": [2, 3, 4] or
         "elements": [...] or "whole_model": true, "view": "isometric" | "xoy" | "xoz",
         "foundation": false, "pictures": [...]}]}]. pictures (optional) items are
-        "<mosaic>[:<item>]": mosaic N, Qy, Qz, My, Mz, Mx, disp_X, disp_Y, disp_Z, Rz,
-        steel_1LS, steel_2LS, steel_LB, steel_max; item MAXIMUM, MINIMUM, MAX ABS (the
-        envelopes), rsn<N>, case<N>, or rsn: the RSN with the largest |Z| in the group (said
-        in notes). Default for a group: N:MAXIMUM, N:MINIMUM, steel_1LS, steel_LB,
-        disp_Z:rsn; with foundation=true: Rz:MINIMUM, Rz:MAXIMUM, Rz:rsn, disp_Z:rsn.
+        "<mosaic>[:<item>]": mosaic N, Qy, Qz, My, Mz, Mx, disp_X, disp_Y, disp_Z, Rz;
+        item MAXIMUM, MINIMUM, MAX ABS (the envelopes), rsn<N>, case<N>, or rsn: the RSN
+        with the largest |Z| in the group (said in notes). Steel (LIR-STK, % of the bearing
+        capacity; no item, it is LIRA's own envelope), the check of the assigned sections
+        or, with steel_sel_, of the sections LIRA selected: per element steel_1LS,
+        steel_2LS, steel_LB (local buckling), steel_max (envelope of the three), and
+        steel_sel_1LS ... steel_sel_max; by design sections (SP) steel_sec_<check> and
+        steel_sel_sec_<check>, check one of normal, shear, reduced (stresses), stab_Y1,
+        stab_Z1, stab_2planes, slender_Y1, slender_Z1, slender_ratio, beam_stab, web,
+        flange, deflection, ribs, lattice; for these the server sets LIRA's "assigned /
+        selected" and "all element types" choices, which stay so. Default for a group:
+        N:MAXIMUM, N:MINIMUM, steel_1LS, steel_LB, disp_Z:rsn; with foundation=true:
+        Rz:MINIMUM, Rz:MAXIMUM, Rz:rsn, disp_Z:rsn.
         LIRA's window must be visible (not minimized); the user should not work in LIRA
         meanwhile.
         """

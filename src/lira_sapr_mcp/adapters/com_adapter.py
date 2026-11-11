@@ -687,9 +687,14 @@ class ComLiraAdapter:
         have the colours of a mosaic. A mosaic command hides the mosaic if LIRA already
         shows it (example 04: N MINIMUM after N MAXIMUM came out bare), so it is given up
         to three times; a command LIRA has nothing for (the steel check of a concrete
-        model) changes nothing. The picture is checked, LIRA's buttons are not guessed."""
+        model) changes nothing. The picture is checked (the colours of a mosaic and its scale
+        at the top), LIRA's buttons are not guessed."""
         from lira_sapr_mcp.adapters import result_view as rv
 
+        # LIRA's choices for the mosaic (the steel by design sections: assigned or selected
+        # sections, all element types): a choice given again stays, it does not toggle.
+        # Before the picture to compare with: a choice may redraw what LIRA shows.
+        rv.run_commands(self._app.StartCmd, self._settle, *rv.PREPARE.get(mosaic, ()))
         before = self.model_picture(ref, view)[2]
         changed = False
         for attempt in range(3):
@@ -697,7 +702,7 @@ class ComLiraAdapter:
             self._settle(1.0 + attempt)
             width, height, pixels = self.model_picture(ref, view)
             changed = changed or pixels != before
-            if changed and rv.mosaic_colours(width, height, pixels) >= rv.MOSAIC_COLOURS:
+            if changed and rv.has_mosaic(width, height, pixels):
                 return width, height, pixels, True
         return width, height, pixels, False
 
