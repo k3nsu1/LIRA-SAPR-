@@ -172,6 +172,15 @@ class FakeAdapter:
         self._get(ref)
         return 2, 1, bytes([0, 0, 255, 255] + [255] * 4)  # BGRA red, white
 
+    def result_picture(self, ref, results, item, mosaic, elements, view):
+        """Records what LIRA's window was asked to show; LIRA shows the item."""
+        self._get(ref)
+        self.shown_pictures = getattr(self, "shown_pictures", [])
+        self.shown_pictures.append((results, item, mosaic, elements, view))
+        label = "" if item is None else (item if isinstance(item, str) else f"{item}. РСН{item}")
+        drawn = item != "MAX ABS"  # the fake does not draw MAX ABS
+        return 2, 1, bytes([0, 0, 255, 255] + [255] * 4), label, drawn
+
     def delete_self_weight(self, ref):
         self._get(ref).pop("self_weight", None)
         return ""

@@ -67,6 +67,8 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Live scratch data may contain archived copies of tests; never collect them.
+norecursedirs = [".*", "_work", ".venv", "node_modules"]
 addopts = "-m 'not lira'"
 markers = [
     "lira: needs a running licensed LIRA-SAPR on this machine (run with -m lira)",

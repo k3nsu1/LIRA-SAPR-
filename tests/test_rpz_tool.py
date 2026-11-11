@@ -192,7 +192,10 @@ async def test_tools_answer_and_write_the_tables(tmp_path):
     footing = {"nodes": [2], "l": 2.0, "b": 2.0, "d": 1.5, "R": 250, "name": "Ф-1"}
     async with Client(build_server(session)) as client:
         facts = await client.call_tool("lira_rpz_facts", {"output_dir": str(tmp_path / "out")})
-        p = await client.call_tool("lira_footing_pressure", {"footings": [footing], "load_case": 1})
+        p = await client.call_tool(
+            "lira_footing_pressure",
+            {"footings": [footing], "load_case": 1, "compression_rz_sign": -1},
+        )
         both = await client.call_tool(
             "lira_footing_pressure", {"footings": [footing], "load_case": 1, "combination": 5}
         )
@@ -282,7 +285,9 @@ def test_loads_on_fragment_in_tf_are_checked_in_kn():
     ]  # 100 tf down, as LIRA's API answers
     forces = rpz.reactions(adapter, "f.lir", [1], 1, None)
     assert forces[1]["RZ"] == pytest.approx(-980.665) and forces[1]["RUX"] == pytest.approx(19.6133)
-    (f,) = rpz.footing_checks([{"nodes": [1], "l": 2, "b": 2, "d": 1.5, "R": 250}], forces)
+    (f,) = rpz.footing_checks(
+        [{"nodes": [1], "l": 2, "b": 2, "d": 1.5, "R": 250}], forces, compression_rz_sign=-1
+    )
     assert f["N_kN"] == pytest.approx(980.7) and f["p_kPa"] == pytest.approx(275.2, abs=0.1)
     assert not f["ok"]  # 275 kPa > R = 250; with tf read as kN it was 55 kPa and "ok"
 
@@ -333,3 +338,99 @@ async def test_rpz_export_warns_of_possible_edits_hidden_by_read_tracking(tmp_pa
     data = json.loads((tmp_path / "f_rpz_facts.json").read_text(encoding="utf-8"))
     assert data["model"]["unsaved_changes"] is True
     assert "unsaved" in result.structured_content["warning"]
+
+
+def test_unknown_sign_and_uplift_are_reported_per_footing():
+    adapter = FakeAdapter()
+    model(adapter)
+    forces = rpz.reactions(adapter, "f.lir", [1, 2], 1, None)
+    f = {"nodes": [2], "l": 2, "b": 2, "d": 1.5, "R": 250}
+    (unknown,) = rpz.footing_checks([f], forces)
+    assert unknown["status"] == "sign_unverified" and not unknown["ok"]
+    assert unknown["RZ_kN"] == -200 and unknown["N_kN"] is unknown["p_kPa"] is None
+    still_seated, lifted = rpz.footing_checks(
+        [f | {"nodes": [1]}, f], forces, compression_rz_sign=1
+    )
+    assert still_seated["N_kN"] == -100 and still_seated["p_kPa"] == 5
+    assert lifted["status"] == "uplift" and not lifted["ok"] and lifted["p_kPa"] is None
+
+
+async def test_global_moments_at_the_base_and_owner_height_default(tmp_path):
+    session, adapter = fake_session(tmp_path)
+    model(adapter)
+    adapter.units_geometry = "cm"
+    adapter.docs["f.lir"]["tables"]["Nodes_Coordinates"] = [[1, 100, 200, 0], [2, 300, 200, 0]]
+    adapter.fragment_loads = lambda *args: [
+        {"node": 1, "case": 1, "RX": 4, "RY": 5, "RZ": -10, "RUX": 1, "RUY": 2},
+        {"node": 2, "case": 1, "RX": 0, "RY": 0, "RZ": -20, "RUX": 0, "RUY": 0},
+    ]
+    f = {"nodes": [1, 2], "l": 8, "b": 8, "d": 1, "R": 250}
+    async with Client(build_server(session)) as client:
+        answer = await client.call_tool(
+            "lira_footing_pressure",
+            {
+                "footings": [f, f | {"center": [1, 1], "h_node": 2}],
+                "load_case": 1,
+                "compression_rz_sign": -1,
+            },
+        )
+    assert not answer.is_error, answer.content[0].text
+    a, b = answer.structured_content["footings"]
+    assert "zero rotation" in answer.structured_content["axes_requirement"]
+    assert a["center_m"] == [2, 2] and a["h_node_m"] == 0
+    assert a["Mx_kNm"] == round(rpz.KN_PER_TF, 1) and a["My_kNm"] == round(12 * rpz.KN_PER_TF, 1)
+    assert a["Mz_kNm"] == round(-5 * rpz.KN_PER_TF, 1)
+    assert a["center_source"] == "mean_node_coordinates"
+    assert a["height_source"] == "nodes_at_base_by_owner_default"
+    assert a["dMx_dh_kN"] == pytest.approx(-5 * rpz.KN_PER_TF)
+    assert a["dMy_dh_kN"] == pytest.approx(4 * rpz.KN_PER_TF)
+    assert b["Mx_kNm"] == round(-39 * rpz.KN_PER_TF, 1)
+    assert b["My_kNm"] == round(50 * rpz.KN_PER_TF, 1)
+
+
+def test_missing_rsn_fragment_pair_is_not_zero():
+    adapter = FakeAdapter()
+    model(adapter)
+    original = adapter.fragment_loads
+    adapter.fragment_loads = lambda *args: [
+        row for row in original(*args) if (row["node"], row["case"]) != (2, 1)
+    ]
+    with pytest.raises(LiraInputError, match=r"node 2.*case 1"):
+        rpz.reactions(adapter, "f.lir", [1, 2], None, 5)
+
+
+def test_local_axes_unknown_units_and_duplicate_nodes_are_refused():
+    adapter = FakeAdapter()
+    model(adapter)
+    adapter.units_geometry = "?"
+    with pytest.raises(LiraInputError, match="geometry unit"):
+        rpz.reactions(adapter, "f.lir", [1], 1, None)
+    adapter.units_geometry = "m"
+    adapter.docs["f.lir"]["tables"]["Nodes_LocalAxes"] = [[2, 0, 0, 1, 30]]
+    with pytest.raises(LiraInputError, match="local axes"):
+        rpz.reactions(adapter, "f.lir", [1, 2], 1, None)
+    forces = rpz.reactions(adapter, "f.lir", [1], 1, None)
+    with pytest.raises(LiraInputError, match="duplicate"):
+        rpz.footing_checks([{"nodes": [1, 1], "l": 2, "b": 2, "d": 1, "R": 250}], forces)
+
+
+def test_negative_height_and_invalid_sign_are_refused():
+    adapter = FakeAdapter()
+    model(adapter)
+    forces = rpz.reactions(adapter, "f.lir", [1], 1, None)
+    f = {"nodes": [1], "l": 2, "b": 2, "d": 1, "R": 250}
+    with pytest.raises(LiraInputError, match="h_node"):
+        rpz.footing_checks([f | {"h_node": -0.1}], forces)
+    with pytest.raises(LiraInputError, match="compression_rz_sign"):
+        rpz.footing_checks([f], forces, 0)
+
+
+@pytest.mark.parametrize("compression_sign", [-1, 1])
+def test_contact_plane_peaks_on_the_loaded_side_of_both_axes(compression_sign):
+    # 500 kN, offset (+0.4, +0.3) from the centre. The loaded corner is (+X, +Y).
+    f = {"nodes": [1], "l": 2, "b": 2, "d": 0, "R": 300, "center": [0, 0]}
+    row = dict.fromkeys(rpz.FORCES, 0.0)
+    row.update(x_m=0.4, y_m=0.3, z_m=0, RZ=compression_sign * 500.0)
+    (result,) = rpz.footing_checks([f], {1: row}, compression_rz_sign=compression_sign)
+    _, gradient_x, gradient_y = result["contact"]["coefficients"]
+    assert gradient_x > 0 and gradient_y > 0

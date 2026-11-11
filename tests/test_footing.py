@@ -104,15 +104,28 @@ def test_nearly_proportional_cases_are_ambiguous_at_result_precision():
 
 
 @pytest.mark.parametrize("mx,my", [(500 / 3, 500 / 3), (150, 200)])
-def test_biaxial_load_outside_diamond_core_has_no_pressure_verdict(mx, my):
+def test_biaxial_load_outside_diamond_core_uses_verified_contact(mx, my):
     p = pressure(500, mx, my, 2, 2, 0, 300)
     assert p.p == 125
-    assert p.p_max is None and p.p_min is None
-    assert not p.ok
-    assert any("не определено" in text for _, _, text in p.checks)
+    assert p.p_max > 250 and p.p_min == 0
+    assert not p.ok  # The chosen contact model does not waive the core requirement.
+    assert p.contact is not None
+    assert abs(p.contact.residual_n) < 1e-6
+    assert abs(p.contact.residual_mx) < 1e-6
+    assert abs(p.contact.residual_my) < 1e-6
 
 
 @pytest.mark.parametrize("moment", [500, 600])
 def test_resultant_on_or_outside_footprint_has_no_contact_solution(moment):
     p = pressure(500, 0, moment, 2, 2, 0, 300)
     assert not p.ok and p.p_max is None
+
+
+def test_unverified_numerical_contact_is_not_reported(monkeypatch):
+    def failed(*args):
+        raise ArithmeticError("contact equilibrium did not converge")
+
+    monkeypatch.setattr("lira_sapr_mcp.postprocessing.footing.contact_pressure", failed)
+    p = pressure(500, 150, 200, 2, 2, 0, 300)
+    assert not p.ok and p.p_max is None and p.p_min is None
+    assert any("равновесие" in text for _, _, text in p.checks)

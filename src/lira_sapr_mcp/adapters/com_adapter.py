@@ -622,6 +622,95 @@ class ComLiraAdapter:
         except ValueError as exc:
             raise LiraComError(f"Could not take a picture of {doc.Title}: {exc}") from exc
 
+    def result_picture(
+        self,
+        ref: str,
+        results: str | None,
+        item: int | str | None,
+        mosaic: str | None,
+        elements: list[int] | None,
+        view: str,
+    ) -> tuple[int, int, bytes, str, bool]:
+        """LIRA's window showing one result as the engineer sets it by hand, captured:
+        ``results`` "load_cases" or "rsn" with ``item`` (a number or an envelope
+        MAXIMUM / MINIMUM / MAX ABS) and ``mosaic`` (result_view.MOSAICS), or None for
+        the scheme; ``elements``: only these are shown (LIRA's fragmentation). Returns
+        width, height, BGRA pixels, the item LIRA shows and whether the picture has the
+        colours of a new mosaic (False: LIRA did not draw it after three tries, has no such
+        result, or the result is one colour; the engineer looks). LIRA's display settings (the
+        scale, loads drawn, design sections) stay the user's."""
+        from lira_sapr_mcp.adapters import result_view as rv
+
+        doc = self.find_document(ref)
+        self._call("Activate", doc.Activate)
+        start = self._app.StartCmd
+        if results is None:
+            rv.run_commands(start, self._settle, rv.INPUT_MODE)
+        else:
+            if results not in rv.BY:
+                raise LiraInputError(f"results: one of {', '.join(rv.BY)}")
+            if mosaic is None:
+                raise LiraInputError("a result picture needs a mosaic")
+            rv.check_mosaic(mosaic)
+            rv.run_commands(start, self._settle, rv.RESULTS_MODE, rv.BY[results])
+            rv.StatusList(self._main_window(), self._settle).wait_ready(results == "rsn")
+        users: list[Any] = []
+        if elements:
+            if "GetSelection" in self.capabilities:
+                users = list(self._call("GetSelection", doc.GetSelection, [], SEL_ELEMENTS))
+            self._call("Unselect", doc.Unselect, "all", SEL_ELEMENTS)
+            self._call("Select", doc.Select, " ".join(map(str, elements)), SEL_ELEMENTS)
+            rv.run_commands(start, self._settle, rv.FRAGMENT)
+        shown = ""
+        try:
+            if results is not None and item is not None:  # steel does not follow the list
+                # The item first, then the mosaic (fragmentation resets the item).
+                shown = rv.StatusList(self._main_window(), self._settle).choose(item)
+            if results is None:
+                width, height, pixels = self.model_picture(ref, view)
+                drawn = True
+            else:
+                width, height, pixels, drawn = self._draw_mosaic(ref, view, mosaic)
+        finally:
+            if elements:
+                try:
+                    rv.run_commands(start, self._settle, rv.WHOLE_MODEL)
+                    self._call("Unselect", doc.Unselect, "all", SEL_ELEMENTS)
+                    if users:
+                        self._call("Select", doc.Select, " ".join(map(str, users)), SEL_ELEMENTS)
+                except LiraComError:
+                    log.warning("Could not restore the whole model after a picture")
+        return width, height, pixels, shown, drawn
+
+    def _draw_mosaic(self, ref: str, view: str, mosaic: str) -> tuple[int, int, bytes, bool]:
+        """Give LIRA the mosaic command and check the picture: it must have changed and
+        have the colours of a mosaic. A mosaic command hides the mosaic if LIRA already
+        shows it (example 04: N MINIMUM after N MAXIMUM came out bare), so it is given up
+        to three times; a command LIRA has nothing for (the steel check of a concrete
+        model) changes nothing. The picture is checked, LIRA's buttons are not guessed."""
+        from lira_sapr_mcp.adapters import result_view as rv
+
+        before = self.model_picture(ref, view)[2]
+        changed = False
+        for attempt in range(3):
+            rv.run_commands(self._app.StartCmd, self._settle, rv.MOSAICS[mosaic][0])
+            self._settle(1.0 + attempt)
+            width, height, pixels = self.model_picture(ref, view)
+            changed = changed or pixels != before
+            if changed and rv.mosaic_colours(width, height, pixels) >= rv.MOSAIC_COLOURS:
+                return width, height, pixels, True
+        return width, height, pixels, False
+
+    def _main_window(self) -> int:
+        import win32gui
+
+        from lira_sapr_mcp.adapters.dialogs import Win32Windows
+
+        for top in Win32Windows().top_level(Path(self.install.exe).name):
+            if win32gui.GetClassName(top).startswith("Afx:") and win32gui.GetWindowText(top):
+                return top
+        raise LiraComError("LIRA's main window is not found")
+
     def _view_window(self, doc: Any) -> int:
         """The largest drawing window inside the active window of LIRA's MDI area (the
         caller activates the document), if that window is the document's."""

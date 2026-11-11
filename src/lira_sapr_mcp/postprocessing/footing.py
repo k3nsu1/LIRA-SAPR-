@@ -19,6 +19,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from lira_sapr_mcp.postprocessing.contact import ContactPressure, contact_pressure
+
 EDGE = 1.2  # of R, at an edge (4.6.19)
 CORNER = 1.5  # of R, at a corner (4.6.19)
 TRAPEZOID = 0.25  # pmin / pmax at least, for the structures of 4.6.20
@@ -38,6 +40,8 @@ class Pressure:
     ey: float  # along b
     r: float
     checks: list[tuple[str, bool, str]] = field(default_factory=list)  # what, ok, numbers
+
+    contact: ContactPressure | None = None
 
     @property
     def ok(self) -> bool:
@@ -68,10 +72,14 @@ def pressure(
     mean = total / area
     within = 6 * ex / l + 6 * ey / b <= 1 + 1e-12
     reason = None
+    contact = None
     if ex >= l / 2 or ey >= b / 2:
         reason = "не определено — равнодействующая на границе подошвы или вне её"
     elif not within and ex > 0 and ey > 0:
-        reason = "не определено — нагрузка вне ядра по двум осям"
+        try:
+            contact = contact_pressure(total, mx, my, l, b)
+        except (ValueError, ArithmeticError):
+            reason = "не определено — равновесие численного контакта не подтверждено"
     if reason:
         return Pressure(
             total,
@@ -90,7 +98,11 @@ def pressure(
         )
     edge_x = mean * (1 + 6 * ex / l) if ex <= l / 6 + 1e-12 else 2 * total / (3 * b * (l / 2 - ex))
     edge_y = mean * (1 + 6 * ey / b) if ey <= b / 6 + 1e-12 else 2 * total / (3 * l * (b / 2 - ey))
-    if within:
+    if contact is not None:
+        edge_x = max(contact.edge_x_minus, contact.edge_x_plus)
+        edge_y = max(contact.edge_y_minus, contact.edge_y_plus)
+        p_max, p_min = contact.p_max, contact.p_min
+    elif within:
         p_max = mean * (1 + 6 * ex / l + 6 * ey / b)
         p_min = mean * (1 - 6 * ex / l - 6 * ey / b)
     else:  # out of the core: the edge of the triangle, nothing at the other side
@@ -114,7 +126,7 @@ def pressure(
         checks.append(
             ("pmin / pmax ≥ 0,25 (п. 4.6.20)", ratio >= TRAPEZOID - 1e-12, f"{ratio:.2f} ≥ 0,25")
         )
-    return Pressure(total, mean, p_max, p_min, edge_x, edge_y, ex, ey, r, checks)
+    return Pressure(total, mean, p_max, p_min, edge_x, edge_y, ex, ey, r, checks, contact)
 
 
 @dataclass(frozen=True)
@@ -127,6 +139,7 @@ class Fit:
     residual: float
     rank: int = 0
     ambiguous_cases: list[int] = field(default_factory=list)
+    discarded_cases: list[int] = field(default_factory=list)
 
     @property
     def identifiable(self) -> bool:
@@ -167,6 +180,7 @@ def fit_combination(
     ambiguous = [c for i, c in enumerate(cases) if null.size and np.linalg.norm(null[:, i]) > 1e-10]
     keep = np.ones(len(cases), dtype=bool)
     k = np.zeros(len(cases))
+    discarded = set()
     for _ in range(2):
         k = np.zeros(len(cases))
         if keep.any():
@@ -175,7 +189,8 @@ def fit_combination(
         small = keep & (np.abs(k) * norm < share * scale)
         if not small.any():
             break
+        discarded.update(cases[i] for i in np.flatnonzero(small & (np.abs(k) >= tolerance)))
         keep &= ~small
     k = np.where(np.abs(k) < tolerance, 0.0, k)
     residual = float(np.max(np.abs(a @ k - y))) / scale if y.size else 0.0
-    return Fit(cases, [float(v) for v in k], residual, rank, ambiguous)
+    return Fit(cases, [float(v) for v in k], residual, rank, ambiguous, sorted(discarded))

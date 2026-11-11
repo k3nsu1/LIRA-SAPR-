@@ -2,13 +2,14 @@
 
 import asyncio
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from mcp.server import MCPServer
 
 from lira_sapr_mcp.errors import LiraInputError
 from lira_sapr_mcp.postprocessing import loads_kz as lk
 from lira_sapr_mcp.services import check, rpz
+from lira_sapr_mcp.services import rpz_pictures as rp
 from lira_sapr_mcp.services.session import LiraSession
 from lira_sapr_mcp.tools.common import lira_errors
 
@@ -71,21 +72,27 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
         model: str | None = None,
         load_case: int | None = None,
         combination: int | None = None,
+        compression_rz_sign: Literal[-1, 1] | None = None,
     ) -> dict[str, Any]:
         """Pressure under rectangular footings checked by SP RK 5.01-102-2013: mean p <= R
         (4.6.1), edge <= 1.2R and corner <= 1.5R (4.6.19), e <= l/6 with pmin >= 0, and
         pmin/pmax >= 0.25 for crane buildings of 75 t and more, open crane trestles over 15 t,
         tower structures (trapezoid=true) and whenever R <= 150 kPa (4.6.20). p = N/A + γmt·d,
-        edge pressures by the linear law (4.6.21); out of the core a triangle.
+        edge pressures by the linear law (4.6.21); outside the core use compression-only contact.
 
         The loads come from LIRA's loads on fragment: define a fragment holding the footing
         nodes in LIRA before the analysis. Each footing: {"nodes": [..] (their loads are
         summed), "l": m (along X, the moment RUY turns it), "b": m (along Y, RUX), "d": m (depth
         of the base), "R": kPa (design resistance of the soil, from the engineer), optional
-        "gamma_mt" (kN/m3, default 20), "trapezoid", "name"}. N is |RZ| (check the sign on the
-        first model). Give exactly one of load_case or combination; an RSN is taken as its
-        fitted multipliers times the load cases' loads (refused if it is not such a sum). The
-        combination for foundations by deformations is the engineer's choice.
+        "gamma_mt" (kN/m3, default 20), "trapezoid", "name"}. Optional center=[global X,Y] in metres
+        defaults to the mean of the node coordinates. h_node in metres is their common height
+        above the base, default 0 (nodes at the base). Moments at the center include r cross F.
+        compression_rz_sign (+1 or -1) is the sign of RZ in compression verified by the engineer.
+        Without it pressure is undetermined. A nonpositive resultant with self-weight means uplift.
+        Give exactly one of load_case or combination; an RSN is taken as its fitted multipliers
+        times the load cases' loads (refused if it is not such a sum). The
+        combination for foundations by deformations is the engineer's choice. The engineer must
+        verify global force and moment axes and zero rotation of the fragment group about Z.
         """
         if (load_case is None) == (combination is None):
             raise LiraInputError("Give exactly one of load_case or combination")
@@ -94,7 +101,16 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
         clean = []
         for f in footings:
             try:
-                nodes = [int(n) for n in f["nodes"]]
+                raw_nodes = f["nodes"]
+                if not isinstance(raw_nodes, list) or not raw_nodes:
+                    raise ValueError("nodes must be a nonempty list of positive node numbers")
+                nodes = [int(n) for n in raw_nodes]
+                if any(
+                    str(n) != str(raw) or n < 1 for n, raw in zip(nodes, raw_nodes, strict=True)
+                ):
+                    raise ValueError("nodes must be positive integers")
+                if len(set(nodes)) != len(nodes):
+                    raise ValueError("duplicate nodes in a footing")
                 item = {
                     "nodes": nodes,
                     "l": float(f["l"]),
@@ -107,6 +123,9 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
                 }
             except (KeyError, TypeError, ValueError) as exc:
                 raise LiraInputError(f"footing {f}: needs nodes, l, b, d and R ({exc})") from exc
+            for key in ("center", "h_node"):
+                if key in f:
+                    item[key] = f[key]
             clean.append(item)
         ref = model or await session.resolve(None)
         nodes = sorted({n for f in clean for n in f["nodes"]})
@@ -119,11 +138,15 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
             combination,
             timeout=session.settings.call_timeout_s * 5,
         )
-        checked = rpz.footing_checks(clean, forces)
+        checked = rpz.footing_checks(clean, forces, compression_rz_sign)
         return {
             "source": {"load_case": load_case}
             if combination is None
             else {"combination": combination},
+            "axes_requirement": (
+                "Engineer must verify global force and moment axes and zero rotation of the "
+                "fragment group about Z. Fragment group rotation is not read by this tool."
+            ),
             "footings": checked,
             "all_ok": all(f["ok"] for f in checked),
         }
@@ -199,6 +222,51 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
         if out is not None:
             answer["files"] = [await asyncio.to_thread(rpz.write_loads, results, out, name)]
         return answer
+
+    @mcp.tool()
+    @lira_errors
+    async def lira_rpz_pictures(output_dir: str, models: list[dict[str, Any]]) -> dict[str, Any]:
+        """Pictures for the appendices of the explanatory note (RPZ) as LIRA draws them, laid
+        out like the owner's sample RPZ, in output_dir (absolute; the LIRA+ project's
+        picture folder): PNG files named "<appendix><nn> <heading> - <what>.png" and
+        pictures.json with what each shows. For each picture LIRA's window is set as the
+        engineer sets it by hand (results mode, RSN or load cases, an item of LIRA's list,
+        a mosaic, a fragment, a projection) and captured; the item LIRA shows is checked.
+        LIRA's display settings (scale, loads drawn, values on elements) stay the user's.
+
+        models: [{"model": .lir path or title, "title": "Здание АБК",
+        "scheme_appendix": "В" (optional: scheme views isometric, xoy, xoz, or
+        "scheme_views"), "appendix": "И" (letter of its results),
+        "groups": [{"title": "Расчет балок перекрытия", "stiffnesses": [2, 3, 4] or
+        "elements": [...] or "whole_model": true, "view": "isometric" | "xoy" | "xoz",
+        "foundation": false, "pictures": [...]}]}]. pictures (optional) items are
+        "<mosaic>[:<item>]": mosaic N, Qy, Qz, My, Mz, Mx, disp_X, disp_Y, disp_Z, Rz,
+        steel_1LS, steel_2LS, steel_LB, steel_max; item MAXIMUM, MINIMUM, MAX ABS (the
+        envelopes), rsn<N>, case<N>, or rsn: the RSN with the largest |Z| in the group (said
+        in notes). Default for a group: N:MAXIMUM, N:MINIMUM, steel_1LS, steel_LB,
+        disp_Z:rsn; with foundation=true: Rz:MINIMUM, Rz:MAXIMUM, Rz:rsn, disp_Z:rsn.
+        LIRA's window must be visible (not minimized); the user should not work in LIRA
+        meanwhile.
+        """
+        out = _folder(output_dir)
+        if out is None:
+            raise LiraInputError("output_dir: an absolute folder path")
+        pictures = rp.plan(models)
+        taken = await session.run(
+            rp.take,
+            session.adapter,
+            pictures,
+            timeout=session.settings.call_timeout_s * max(5, len(pictures)),
+        )
+        files = await asyncio.to_thread(rp.write, taken, out)
+        return {
+            "files": files,
+            "pictures": [
+                {"file": p.file, "appendix": p.appendix, "heading": p.heading, "shown": p.shown}
+                | ({"notes": p.notes} if p.notes else {})
+                for p in taken
+            ],
+        }
 
 
 KINDS = {

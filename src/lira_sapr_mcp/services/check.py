@@ -184,13 +184,18 @@ def check_model(adapter: Any, model: str | None) -> dict[str, Any]:
         fits, dynamic = rpz.multipliers(adapter, path)
         used = {
             c for f in fits.values() for c, k in zip(f.cases, f.multipliers, strict=True) if k != 0
-        } | dynamic
-        if any(not f.identifiable or f.residual >= rpz.GOOD_FIT for f in fits.values()):
+        }
+        if dynamic or any(
+            not f.identifiable or f.discarded_cases or f.residual >= rpz.GOOD_FIT
+            for f in fits.values()
+        ):
             findings.append(
                 _not_checked(
                     "every load case is in some RSN",
                     "Каждое загружение входит хотя бы в одно РСН",
-                    "состав РСН не определён однозначно по перемещениям",
+                    "принадлежность динамических загружений к РСН не определена"
+                    if dynamic
+                    else "состав РСН не определён однозначно по перемещениям",
                 )
             )
         else:

@@ -3,6 +3,8 @@ load combinations (RSN), stiffnesses with their elements — and support reactio
 pressure under footings by SP RK 5.01-102-2013."""
 
 from collections import Counter
+from dataclasses import asdict
+from math import isclose, isfinite
 from pathlib import Path
 from typing import Any
 
@@ -10,7 +12,7 @@ import numpy as np
 
 from lira_sapr_mcp.errors import LiraInputError
 from lira_sapr_mcp.postprocessing.footing import Fit, fit_combination, pressure
-from lira_sapr_mcp.services.slabs import open_model
+from lira_sapr_mcp.services.slabs import TO_METERS, open_model
 
 SAMPLE = 300  # nodes evenly over the model whose displacements fit the RSN multipliers
 PEAK = 10  # and, per static load case, the nodes it moves most
@@ -155,13 +157,21 @@ def model_facts(adapter: Any, model: str | None) -> dict[str, Any]:
                     for case, k in zip(fit.cases, fit.multipliers, strict=True)
                     if round(k, 4) != 0
                 ]
-                row["exact"] = fit.identifiable and fit.residual < GOOD_FIT
+                row["exact"] = (
+                    fit.identifiable and not fit.discarded_cases and fit.residual < GOOD_FIT
+                )
                 row["ambiguous_cases"] = fit.ambiguous_cases
                 if not fit.identifiable:
                     row["warning"] = (
                         "Множители загружений по отдельности не определены: "
                         + ", ".join(map(str, fit.ambiguous_cases))
                     )
+                    row["make_up"] = []
+                if fit.discarded_cases:
+                    row["discarded_cases"] = fit.discarded_cases
+                    warning = "Малый вклад в перемещения: отброшены ненулевые множители загружений "
+                    warning += ", ".join(map(str, fit.discarded_cases))
+                    row["warning"] = " ".join(filter(None, (row.get("warning"), warning)))
                     row["make_up"] = []
                 row["residual"] = float(f"{fit.residual:.2e}")
             rsn.append(row)
@@ -182,89 +192,189 @@ def reactions(
     on fragment), for a load case or an RSN (its fitted multipliers times the load cases'),
     in kN and kN·m: LIRA's results API answers in tf and tf·m whatever units LIRA shows."""
     path = open_model(adapter, model)
+    wanted = set(nodes)
+    unit = adapter.units().geometry
+    if unit not in TO_METERS:
+        raise LiraInputError(f"Unknown geometry unit {unit!r} in LIRA")
+    for row in adapter.read_table(path, "Nodes_LocalAxes", nodes):
+        if row and row[0] is not None and int(row[0]) in wanted:
+            raise LiraInputError(f"Node {row[0]} has local axes; global reactions are required")
+    positions = {
+        int(row[0]): [float(value) * TO_METERS[unit] for value in row[1:4]]
+        for row in adapter.read_table(path, "Nodes_Coordinates", nodes)
+        if len(row) >= 4
+        and row[0] is not None
+        and int(row[0]) in wanted
+        and all(value is not None for value in row[1:4])
+    }
+    if wanted - positions.keys():
+        raise LiraInputError(f"Missing coordinates for nodes {sorted(wanted - positions.keys())}")
     if combination is None:
-        rows = adapter.fragment_loads(path, nodes, [case])
-        return {
-            int(r["node"]): {k: float(r.get(k, 0.0)) * KN_PER_TF for k in FORCES}
-            for r in rows
-            if "shape" not in r
-        }
-    fits, dynamic = multipliers(adapter, path, [combination])
-    fit = fits.get(combination)
-    if fit is None:
-        raise LiraInputError(f"No load combination {combination}")
-    if not fit.identifiable:
-        raise LiraInputError(
-            f"RSN {combination}: multipliers not uniquely determined; "
-            f"indistinguishable load cases {fit.ambiguous_cases}"
-        )
-    if fit.residual >= GOOD_FIT:
-        raise LiraInputError(
-            f"RSN {combination} is not a sum of static load cases (residual {fit.residual:.1e}"
-            + (f"; dynamic cases {sorted(dynamic)} are in it" if dynamic else "")
-            + "): give the load cases one by one"
-        )
-    used = [(c, k) for c, k in zip(fit.cases, fit.multipliers, strict=True) if k != 0]
-    rows = adapter.fragment_loads(path, nodes, [c for c, _ in used])
-    out: dict[int, dict[str, float]] = {n: dict.fromkeys(FORCES, 0.0) for n in nodes}
-    k = dict(used)
-    for r in rows:
-        if "shape" in r or int(r["case"]) not in k:
+        weights = {case: 1.0}
+    else:
+        fits, dynamic = multipliers(adapter, path, [combination])
+        fit = fits.get(combination)
+        if fit is None:
+            raise LiraInputError(f"No load combination {combination}")
+        if not fit.identifiable:
+            raise LiraInputError(
+                f"RSN {combination}: multipliers not uniquely determined; "
+                f"indistinguishable load cases {fit.ambiguous_cases}"
+            )
+        if fit.discarded_cases:
+            raise LiraInputError(
+                f"RSN {combination}: fit discarded nonzero multipliers for load cases "
+                f"{fit.discarded_cases}; reactions cannot be inferred"
+            )
+        if fit.residual >= GOOD_FIT:
+            raise LiraInputError(
+                f"RSN {combination} is not a sum of static load cases (residual {fit.residual:.1e}"
+                + (f"; dynamic cases {sorted(dynamic)} are in it" if dynamic else "")
+                + "): give the load cases one by one"
+            )
+        weights = {c: k for c, k in zip(fit.cases, fit.multipliers, strict=True) if k != 0}
+    if not weights:
+        raise LiraInputError(f"RSN {combination}: no contributing static load case")
+    rows = adapter.fragment_loads(path, nodes, list(weights))
+    out = {n: dict.fromkeys(FORCES, 0.0) for n in nodes}
+    seen = set()
+    for row in rows:
+        node, load_case = int(row["node"]), int(row["case"])
+        if "shape" in row or node not in wanted or load_case not in weights:
             continue
-        acc = out.setdefault(int(r["node"]), dict.fromkeys(FORCES, 0.0))
-        for f in FORCES:
-            acc[f] += k[int(r["case"])] * float(r.get(f, 0.0)) * KN_PER_TF
+        if (node, load_case) in seen:
+            raise LiraInputError(f"Duplicate fragment load for node {node}, case {load_case}")
+        seen.add((node, load_case))
+        for component in FORCES:
+            out[node][component] += float(row.get(component, 0.0)) * KN_PER_TF * weights[load_case]
+    for node in nodes:
+        for load_case in weights:
+            if (node, load_case) not in seen:
+                raise LiraInputError(f"No loads on fragment for node {node}, case {load_case}")
+        out[node].update(zip(("x_m", "y_m", "z_m"), positions[node], strict=True))
+        if not all(isfinite(value) for value in out[node].values()):
+            raise LiraInputError(f"Non-finite coordinate or reaction for node {node}")
     return out
 
 
 def footing_checks(
-    footings: list[dict[str, Any]], forces: dict[int, dict[str, float]]
+    footings: list[dict[str, Any]],
+    forces: dict[int, dict[str, float]],
+    compression_rz_sign: int | None = None,
 ) -> list[dict]:
-    """Each footing: its nodes' loads summed (N = |RZ|, moments by size) and the pressure."""
+    """Transfer each node's global loads to its footing base, then check soil pressure."""
+    if compression_rz_sign not in (None, -1, 1) or isinstance(compression_rz_sign, bool):
+        raise LiraInputError("compression_rz_sign must be -1 or +1")
     out = []
     for f in footings:
         nodes = f["nodes"]
+        if not nodes or len(nodes) != len(set(nodes)):
+            raise LiraInputError("Footing needs nodes without duplicates")
         missing = [n for n in nodes if n not in forces]
         if missing:
             raise LiraInputError(
                 f"Footing {f.get('name') or nodes}: no loads on fragment at nodes {missing}: "
                 "the fragment must hold them"
             )
-        rz = sum(forces[n]["RZ"] for n in nodes)
-        mx = sum(forces[n]["RUX"] for n in nodes)
-        my = sum(forces[n]["RUY"] for n in nodes)
-        try:
-            p = pressure(
-                abs(rz),
-                mx,
-                my,
-                f["l"],
-                f["b"],
-                f["d"],
-                f["R"],
-                f.get("gamma_mt", 20.0),
-                bool(f.get("trapezoid", False)),
+        loads = [forces[n] for n in nodes]
+        if any(not isclose(row["z_m"], loads[0]["z_m"], rel_tol=0, abs_tol=1e-6) for row in loads):
+            raise LiraInputError("Footing nodes must be at the same elevation for a common h_node")
+        if "center" in f:
+            center = f["center"]
+            if not isinstance(center, (list, tuple)) or len(center) != 2:
+                raise LiraInputError("center must be [X, Y] in metres")
+            cx, cy = center
+        else:
+            cx, cy = (sum(row[axis] for row in loads) / len(nodes) for axis in ("x_m", "y_m"))
+        h = f.get("h_node", 0.0)
+        length, width, depth, resistance = f["l"], f["b"], f["d"], f["R"]
+        gamma = f.get("gamma_mt", 20.0)
+        if not all(
+            isinstance(v, (float, int)) and isfinite(v)
+            for v in (cx, cy, h, length, width, depth, resistance, gamma)
+        ):
+            raise LiraInputError(
+                "Footing dimensions, center, height and soil parameters must be finite numbers"
             )
-        except ValueError as exc:
-            raise LiraInputError(f"Footing {f.get('name') or nodes}: {exc}") from exc
-        out.append(
-            {
-                "name": f.get("name") or ", ".join(map(str, nodes)),
-                "nodes": nodes,
-                "N_kN": round(abs(rz), 1),
-                "Mx_kNm": round(mx, 1),
-                "My_kNm": round(my, 1),
-                "l_m": f["l"],
-                "b_m": f["b"],
-                "d_m": f["d"],
-                "R_kPa": f["R"],
-                "p_kPa": round(p.p, 1),
-                "p_max_kPa": round(p.p_max, 1) if p.p_max is not None else None,
-                "p_min_kPa": round(p.p_min, 1) if p.p_min is not None else None,
-                "checks": [{"check": w, "ok": ok, "numbers": s} for w, ok, s in p.checks],
-                "ok": p.ok,
-            }
+        if h < 0:
+            raise LiraInputError("h_node must be nonnegative")
+        if min(length, width, resistance) <= 0 or min(depth, gamma) < 0:
+            raise LiraInputError("l, b and R must be positive; d and gamma_mt must be nonnegative")
+        qx, qy, rz = (sum(row[key] for row in loads) for key in ("RX", "RY", "RZ"))
+        mx = sum(row["RUX"] + (row["y_m"] - cy) * row["RZ"] - h * row["RY"] for row in loads)
+        my = sum(row["RUY"] + h * row["RX"] - (row["x_m"] - cx) * row["RZ"] for row in loads)
+        mz = sum(
+            row["RUZ"] + (row["x_m"] - cx) * row["RY"] - (row["y_m"] - cy) * row["RX"]
+            for row in loads
         )
+        n = compression_rz_sign * rz if compression_rz_sign is not None else None
+        total = n + gamma * depth * length * width if n is not None else None
+        result = {
+            "name": f.get("name") or ", ".join(map(str, nodes)),
+            "nodes": nodes,
+            "center_m": [cx, cy],
+            "center_source": "given" if "center" in f else "mean_node_coordinates",
+            "h_node_m": h,
+            "height_source": "given" if "h_node" in f else "nodes_at_base_by_owner_default",
+            "RZ_kN": rz,
+            "compression_rz_sign": compression_rz_sign,
+            "N_kN": round(n, 1) if n is not None else None,
+            "N_total_kN": total,
+            "Qx_kN": qx,
+            "Qy_kN": qy,
+            "Mx_kNm": round(mx, 1),
+            "My_kNm": round(my, 1),
+            "Mz_kNm": round(mz, 1),
+            "l_m": length,
+            "b_m": width,
+            "d_m": depth,
+            "R_kPa": resistance,
+            "p_kPa": None,
+            "p_max_kPa": None,
+            "p_min_kPa": None,
+            "checks": [],
+            "ok": False,
+        }
+        if qx or qy:
+            result.update(
+                dMx_dh_kN=-qy,
+                dMy_dh_kN=qx,
+                height_note="Per extra metre, add -Qy to Mx and +Qx to My (kN·m).",
+            )
+        out.append(result)
+        if n is None:
+            result["status"] = "sign_unverified"
+            result["message"] = (
+                "Знак RZ при сжатии не подтверждён. Укажите проверенный compression_rz_sign."
+            )
+            continue
+        if total <= 0:
+            result["status"] = "uplift"
+            result["message"] = "Отрыв: с учётом веса сжатия нет, проверка давления неприменима."
+            continue
+        # The raw right-hand moment of vertical force is (y*Fz, -x*Fz).
+        # The contact solver instead uses the first moments of positive compression.
+        p = pressure(
+            n,
+            compression_rz_sign * mx,
+            -compression_rz_sign * my,
+            length,
+            width,
+            depth,
+            resistance,
+            gamma,
+            bool(f.get("trapezoid", False)),
+        )
+        result.update(
+            status="checked",
+            p_kPa=round(p.p, 1),
+            p_max_kPa=round(p.p_max, 1) if p.p_max is not None else None,
+            p_min_kPa=round(p.p_min, 1) if p.p_min is not None else None,
+            checks=[{"check": w, "ok": ok, "numbers": msg} for w, ok, msg in p.checks],
+            ok=p.ok,
+        )
+        if p.contact is not None:
+            result["contact"] = {"method": "compression_only_plane", **asdict(p.contact)}
     return out
 
 
@@ -361,6 +471,8 @@ def write_facts_json(facts: dict[str, Any], out_dir: Path, unsaved: bool = False
         "combinations": facts.get("combinations", []),
         "stiffnesses": facts["stiffnesses"],
     }
+    if "dynamic_cases_left_out" in facts:
+        data["dynamic_cases_left_out"] = facts["dynamic_cases_left_out"]
     path = out_dir / f"{model.stem}_rpz_facts.json"
     path.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     return str(path)
