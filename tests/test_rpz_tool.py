@@ -123,8 +123,8 @@ def test_load_cases_carry_gamma_f_and_the_long_term_share_from_dcl(tmp_path):
         "№",
         "Наименование",
         "Вид",
-        "γf",
-        "Доля длительной",
+        "γf по DCL",
+        "Доля длительной по DCL",
     ]
     assert [c.text for c in table.rows[2].cells][3:] == ["1,2", "0,35"]
     assert [c.text for c in table.rows[3].cells][3:] == ["", ""]
@@ -157,6 +157,8 @@ def test_facts_json_for_lira_plus_carries_the_model_hash_and_the_facts(tmp_path)
     (rsn,) = data["combinations"]
     assert rsn["exact"] and [m["case"] for m in rsn["make_up"]] == [1, 2]
     assert data["stiffnesses"][0]["number"] == 1
+    data = json.loads(open_text(rpz.write_facts_json(facts, tmp_path, unsaved=True)))
+    assert data["model"]["unsaved_changes"] is True  # the hash is of the file, not of LIRA's
 
 
 def test_reactions_of_an_rsn_are_its_multipliers_times_the_cases():
@@ -316,3 +318,18 @@ def test_the_docx_names_only_the_true_reason_an_rsn_make_up_is_unknown(tmp_path)
     facts = rpz.model_facts(adapter, "f.lir")
     cell = Document(rpz.write_facts(facts, tmp_path)).tables[1].rows[1].cells[2].text
     assert cell == "Множители загружений по отдельности не определены: 1, 2"
+
+
+async def test_rpz_export_warns_of_possible_edits_hidden_by_read_tracking(tmp_path):
+    import json
+
+    session, adapter = fake_session(tmp_path)
+    model(adapter)
+    adapter.docs["f.lir"]["possibly_unsaved"] = True
+    assert not adapter.document_info().modified
+    async with Client(build_server(session)) as client:
+        result = await client.call_tool("lira_rpz_facts", {"output_dir": str(tmp_path)})
+    assert not result.is_error, result.content[0].text
+    data = json.loads((tmp_path / "f_rpz_facts.json").read_text(encoding="utf-8"))
+    assert data["model"]["unsaved_changes"] is True
+    assert "unsaved" in result.structured_content["warning"]

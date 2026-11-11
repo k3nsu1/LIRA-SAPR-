@@ -23,7 +23,8 @@
   `liraResults`; sha256 даёт ЛИРА+ заметить, что факты пересчитаны (как `LiraRez.Changed`).
 - Структура (версия 1, черновик; выгружается уже сейчас):
   - `schema` = `"lira-sapr-mcp/rpz-facts"`, `version` = 1, `generator` (версия сервера);
-  - `model` — `{path, sha256}` файла `.lir`, по которому собраны факты;
+  - `model` — `{path, sha256}` файла `.lir`, по которому собраны факты; `unsaved_changes: true`,
+    если в ЛИРЕ модель изменена и не сохранена (тогда хеш — от файла на диске, а не от фактов);
   - `load_cases` — `{number, name, kind, gamma_f, long_term_share}` (γf и доля — из `DCL`,
     поля нет, если ЛИРА его не дала);
   - `combinations` — `{number, name, special, seismic, make_up: [{case, multiplier}], exact,

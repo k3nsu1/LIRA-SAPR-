@@ -288,9 +288,13 @@ def write_facts(facts: dict[str, Any], out_dir: Path) -> str:
     out_dir.mkdir(parents=True, exist_ok=True)
     doc = Document()
     doc.add_paragraph("Загружения расчётной схемы")
+    doc.add_paragraph(
+        "γf и доля длительной — значения таблицы РСН (DCL) ЛИРЫ на загружение. Какие "
+        "множители ЛИРА применила в каждом РСН, показывает состав РСН ниже."
+    )
     t = doc.add_table(rows=1, cols=5)
     t.style = "Table Grid"
-    heads = ("№", "Наименование", "Вид", "γf", "Доля длительной")
+    heads = ("№", "Наименование", "Вид", "γf по DCL", "Доля длительной по DCL")
     for cell, h in zip(t.rows[0].cells, heads, strict=True):
         cell.text = h
     for c in facts["load_cases"]:
@@ -332,9 +336,10 @@ FACTS_SCHEMA = "lira-sapr-mcp/rpz-facts"
 FACTS_VERSION = 1  # draft, docs/decisions/0006-lira-plus-exchange.md
 
 
-def write_facts_json(facts: dict[str, Any], out_dir: Path) -> str:
+def write_facts_json(facts: dict[str, Any], out_dir: Path, unsaved: bool = False) -> str:
     """The same facts for LIRA+ (draft exchange format 0006): the model file with its
-    SHA-256 (upper case, as LiraRez.Hash), load cases, RSN and stiffnesses."""
+    SHA-256 (upper case, as LiraRez.Hash), load cases, RSN and stiffnesses. ``unsaved``: the
+    model open in LIRA has changes not in its file, so the hash is of another version."""
     import hashlib
     import json
 
@@ -342,12 +347,16 @@ def write_facts_json(facts: dict[str, Any], out_dir: Path) -> str:
 
     out_dir.mkdir(parents=True, exist_ok=True)
     model = Path(facts["model"])
-    sha = hashlib.sha256(model.read_bytes()).hexdigest().upper() if model.is_file() else None
+    sha = None
+    if model.is_file():
+        with model.open("rb") as f:
+            sha = hashlib.file_digest(f, "sha256").hexdigest().upper()
     data = {
         "schema": FACTS_SCHEMA,
         "version": FACTS_VERSION,
         "generator": f"lira-sapr-mcp {__version__}",
-        "model": {"path": str(model), "sha256": sha},
+        "model": {"path": str(model), "sha256": sha}
+        | ({"unsaved_changes": True} if unsaved else {}),
         "load_cases": facts["load_cases"],
         "combinations": facts.get("combinations", []),
         "stiffnesses": facts["stiffnesses"],

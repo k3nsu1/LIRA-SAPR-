@@ -79,6 +79,13 @@ async def test_percentages_are_lira_strings_with_groups_and_the_100_percent_fact
         (4, ["2LS"]),
     ]
     assert rows[3]["over_100"] == ["1LS"] and rows[1]["over_100"] == []
+    # Measures LIRA has no result for are counted apart: they are not "100 % or less"
+    assert out["no_result_count"] == 3
+    assert out["no_result"] == [
+        {"element": 3, "measures": ["LB"]},
+        {"element": 4, "measures": ["LB"]},
+        {"element": 5, "measures": ["1LS", "2LS", "LB"]},
+    ]
     # Sorted by the largest of the three, no result last
     assert [r["element"] for r in out["rows"]] == [4, 2, 3, 1, 6, 5]
     groups = {(g.get("stiffness"), g.get("section")): g for g in out["groups"]}
@@ -142,3 +149,14 @@ async def test_export_writes_elements_and_groups(tmp_path):
     assert book["elements"].max_row == 7  # header and all six elements, not only the top
     values = {row[0].value: row[head.index("1LS")].value for row in book["elements"].iter_rows(2)}
     assert values[1] == "63.10"
+
+
+async def test_a_rez_naming_another_model_is_warned_about(tmp_path):
+    session, adapter = fake_session(tmp_path)
+    setup(tmp_path, adapter, text=REZ.replace("Title=w", "Title=other"))
+    res = await call(session, {})
+    assert not res.is_error, res.content[0].text
+    assert "names the model 'other', not 'w'" in res.structured_content["warning"]
+    setup(tmp_path, adapter)  # the model's own title: no warning
+    res = await call(session, {})
+    assert "warning" not in res.structured_content

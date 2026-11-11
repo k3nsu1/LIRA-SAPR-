@@ -47,6 +47,21 @@ def find_rez(work: str | None, model_path: str, design_option: int) -> tuple[Pat
     return path, warning
 
 
+def origin_warning(file: steel.RezFile, model_path: str | None) -> str | None:
+    """A warning when the model title the .rez names is not the model's file name: LIRA's
+    work folder is shared, and a model of the same name elsewhere writes the same file."""
+    title = (file.general.get("Title") or "").strip()
+    if not model_path or not title:
+        return None
+    stem = Path(model_path).stem
+    if title.casefold() == stem.casefold():
+        return None
+    return (
+        f"The .rez names the model {title!r}, not {stem!r}: it may be another model's steel "
+        "check; rerun the analysis of this model"
+    )
+
+
 def _value(text: str) -> float | None:
     """A percentage as a number for sorting and the 100 % fact; None where LIRA has no
     result (NR, the service value 1e20), as LiraRez does."""
@@ -82,19 +97,23 @@ def check(
         chosen = group.elements
     if not chosen:
         raise LiraInputError("No elements of the .rez match elements / stiffnesses")
-    rows, over = [], []
+    rows, over, blind = [], [], []
     for number in chosen:
         e = file.elements[number]
         row: dict[str, Any] = {"element": number} | _section_of(file, e)
-        above = []
+        above, missing = [], []
         for m, text in zip(steel.MEASURES, e.asn_pct, strict=True):
             row[m] = text
             value = _value(text)
-            if value is not None and value > LIMIT:
+            if value is None:
+                missing.append(m)
+            elif value > LIMIT:
                 above.append(m)
         row["over_100"] = above
         if above:
             over.append({"element": number, "measures": above} | _section_of(file, e))
+        if missing:
+            blind.append({"element": number, "measures": missing})
         rows.append(row)
 
     def key(row: dict) -> tuple[bool, float]:
@@ -112,6 +131,9 @@ def check(
         "elements_checked": len(rows),
         "over_100_count": len(over),
         "over_100": over,
+        # No result is not "not above 100 %": the agent must not read 0 over as all passed
+        "no_result_count": len(blind),
+        "no_result": blind,
         "groups": groups,
         "rows": shown,
         "rows_shown": len(shown),

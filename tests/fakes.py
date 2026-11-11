@@ -71,6 +71,10 @@ class FakeAdapter:
     def list_documents(self):
         return [self._info(d) for d in self.docs.values()]
 
+    def has_unsaved_changes(self, ref):
+        d = self._get(ref)
+        return bool(d["modified"] or d.get("possibly_unsaved", False))
+
     def document_info(self, ref=None):
         if not self.docs:
             raise LiraInputError("No model is open in LIRA: open or create one first")

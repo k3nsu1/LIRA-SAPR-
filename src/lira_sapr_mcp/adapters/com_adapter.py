@@ -275,6 +275,12 @@ class ComLiraAdapter:
         open_now = ", ".join(str(d.PathName) for d in docs) or "none"
         raise LiraInputError(f"No open LIRA document matches {ref!r}. Open documents: {open_now}")
 
+    def has_unsaved_changes(self, ref: str) -> bool:
+        """Conservative export guard: reads can dirty LIRA's document, and subsequent
+        owner edits cannot be distinguished from those reads. Keep the raw flag here."""
+        self.connect()
+        return bool(self.find_document(ref).IsModified())
+
     def document_info(self, ref: str | None = None) -> DocInfo:
         """Plain data about ``ref`` (path or title), or about the active document."""
         self.connect()

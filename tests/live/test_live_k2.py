@@ -87,3 +87,6 @@ async def test_steel_check_reads_what_lira_wrote(mcp, workdir):
         if any(t not in ("NR",) and float(t) < steel.SERVICE_VALUE and float(t) > 100
                for t in e.asn_pct)
     }  # fmt: skip
+    # The .rez names this model (K2 review: a model of the same name elsewhere writes the
+    # same file in the shared work folder): no origin warning on the model's own check.
+    assert "names the model" not in out.get("warning", ""), rez.general.get("Title")

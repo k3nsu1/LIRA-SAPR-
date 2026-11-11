@@ -531,3 +531,14 @@ def test_a_text_lira_cannot_read_fails_the_import_with_its_message(
         adapter.import_file(str(src))
     assert pressed == [(5, dialogs.IDCANCEL)]
     assert doc.closed == left_behind  # a document left behind is not the model asked for
+
+
+def test_export_detects_possible_unsaved_edits_after_reads(lira):
+    adapter, doc = lira
+    assert not adapter.has_unsaved_changes(doc.PathName)
+    read(adapter, doc)
+    doc.modified = True  # An owner edit is indistinguishable from our earlier read.
+    assert not adapter.document_info().modified
+    assert adapter.has_unsaved_changes(doc.PathName)
+    doc.Save(False)
+    assert not adapter.has_unsaved_changes(doc.PathName)

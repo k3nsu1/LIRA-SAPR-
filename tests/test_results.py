@@ -355,8 +355,11 @@ class _Numbers:
 
 
 class _Info:
-    def __init__(self, number, shapes, summary):
+    def __init__(self, number, shapes, summary, modes=None):
         self.Number, self.SummaryShapeCount = number, summary
+        self.DynamicModeShapeCount = len(shapes.split(",")) if modes is None else modes
+        if modes is None and shapes == "1" and not summary:
+            self.DynamicModeShapeCount = 0  # a static load case
         self.DeformedShapes = type("Longs", (), {"AddToString": lambda _: shapes})()
 
 
@@ -369,6 +372,29 @@ def test_a_dynamic_load_case_adds_its_summary_shape():
     shapes = _shapes(infos, [4], summary=True)
     assert shapes == [(4, [(1, 1), (2, 5), (3, 11), (-1, -1)])]
     assert [_shape_label(mode) for _, mode in shapes[0][1]] == [1, 5, 11, "sum"]
+
+
+class _OneModeForces:
+    """A dynamic load case analysed with one mode shape kept, next to a static one."""
+
+    def __init__(self):
+        self.LoadCases = _Infos((1, "1", 0), (4, "1", 0, 1))
+
+    def GetSectionCount(self, el):
+        return 1
+
+
+def test_a_dynamic_load_case_with_one_shape_is_still_labelled(monkeypatch):
+    from lira_sapr_mcp.adapters import results
+    from lira_sapr_mcp.adapters.results import ResultsReader
+
+    reader = ResultsReader(None)
+    monkeypatch.setattr(reader, "_query", lambda *args, **kwargs: _OneModeForces())
+    monkeypatch.setattr(
+        results, "_components", lambda resp, el, families, cache: ("bar", [("N", lambda *a: 1.0)])
+    )
+    rows = reader.element_forces("m.lir", [1], None)
+    assert [(r["case"], r.get("shape")) for r in rows] == [(1, None), (4, 1)]
 
 
 class _FragmLoads:
@@ -455,3 +481,11 @@ def test_a_slab_asks_for_many_numbers_in_parts():
     areas = reader.plate_reinforcement("m.lir", numbers, ["AS1", "AS2"])
     assert len(asked) == 3 and max(map(len, asked)) <= results.NUMBERS_AT_ONCE
     assert sorted(areas["AS2"]) == sorted(numbers)
+
+
+def test_a_single_dynamic_mode_still_includes_its_available_summary():
+    from lira_sapr_mcp.adapters.results import _shapes
+
+    infos = _Infos((1, "1", 0), (4, "1", 1, 1))
+    assert _shapes(infos, None, summary=True) == [(1, [(1, 1)]), (4, [(1, 1), (-1, -1)])]
+    assert _shapes(infos, [4], summary=False) == [(4, [(1, 1)])]

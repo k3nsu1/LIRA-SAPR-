@@ -218,12 +218,13 @@ class ResultsReader:
         directions = _numbers(resp.Directions.AddToString())
         getters = {d: getattr(resp, f"GetNode{name}") for d, name in DISPLACEMENTS.items()}
         shapes = _shapes(resp.LoadCases, cases, summary=True)
+        dynamic = _dynamic_cases(resp.LoadCases)
         rows = []
         for node in _items(resp.NodeNumbers):
             for case, modes in shapes:
                 for _, mode in modes:
                     row: dict[str, Any] = {"node": node, "case": case}
-                    if len(modes) > 1:
+                    if len(modes) > 1 or case in dynamic:
                         row["shape"] = _shape_label(mode)
                     for d in directions:
                         if d in getters:
@@ -260,7 +261,7 @@ class ResultsReader:
                 lambda req: req.Nodes.AddFromString(wanted),
             )
             ((_, shapes),) = _shapes(resp.LoadCases, [case])
-            if len(shapes) > 1:
+            if len(shapes) > 1 or case in _dynamic_cases(resp.LoadCases):
                 raise LiraInputError(
                     f"Load case {case} is dynamic: deflections need a static load case or a "
                     "load combination"
@@ -299,6 +300,7 @@ class ResultsReader:
             lambda req: req.Elements.AddFromString(wanted),
         )
         shapes = _shapes(resp.LoadCases, cases, summary=True)
+        dynamic = _dynamic_cases(resp.LoadCases)
         getters: dict[int, Any] = {}
         rows = []
         for el in elements:
@@ -311,7 +313,7 @@ class ResultsReader:
                 for position, mode in modes:
                     for section in range(1, sections + 1):
                         row: dict[str, Any] = {"family": family, "element": el, "case": case}
-                        if len(modes) > 1:
+                        if len(modes) > 1 or case in dynamic:
                             row["shape"] = _shape_label(mode)
                         row["section"] = section
                         for name, get in components:
@@ -637,6 +639,7 @@ class ResultsReader:
         available = [c for c in _numbers(resp.Forces.AddToString()) if c in names]
         getters = {c: getattr(resp, "GetNode" + names[c]) for c in available}
         shapes = _shapes(resp.LoadCases, cases, summary=True)
+        dynamic = _dynamic_cases(resp.LoadCases)
         rows = []
         for node in _items(resp.NodeNumbers):
             for case, modes in shapes:
@@ -644,7 +647,7 @@ class ResultsReader:
                 # model for both loads on fragment and on punching contours).
                 for _, mode in modes:
                     row: dict[str, Any] = {"node": node, "case": case}
-                    if len(modes) > 1:
+                    if len(modes) > 1 or case in dynamic:
                         row["shape"] = _shape_label(mode)
                     for c, get in getters.items():
                         row[names[c]] = float(get(node, case, mode))
@@ -761,10 +764,20 @@ def _shapes(
         info = by_number[case]
         modes = _numbers(info.DeformedShapes.AddToString()) or [1]
         shapes = list(enumerate(modes, start=1))
-        if summary and len(modes) > 1 and int(info.SummaryShapeCount) > 0:
+        if summary and int(info.SummaryShapeCount) > 0:
             shapes.append((SUMMARY_SHAPE, SUMMARY_SHAPE))
         out.append((case, shapes))
     return out
+
+
+def _dynamic_cases(infos: Any) -> set[int]:
+    """Load cases with mode shapes: dynamic even when only one shape was kept, so that
+    their rows are labelled with the shape and no tool takes them for static ones."""
+    return {
+        int(infos.Item(i).Number)
+        for i in range(infos.Count)
+        if int(getattr(infos.Item(i), "DynamicModeShapeCount", 0) or 0) > 0
+    }
 
 
 def _shape_label(mode: int) -> int | str:

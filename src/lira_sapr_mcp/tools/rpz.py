@@ -29,8 +29,9 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
         model: str | None = None, output_dir: str | None = None
     ) -> dict[str, Any]:
         """Facts of an analysed model for sections 1.7 and 4 of the explanatory note (RPZ):
-        load cases (number, name, kind, and gamma_f and long_term_share from the DCL input
-        table), stiffnesses with their parameters and number of elements, and each load
+        load cases (number, name, kind, and gamma_f and long_term_share as the DCL input
+        table holds them - not proof that LIRA applied them: the RSN make-up shows the
+        multipliers it did), stiffnesses with their parameters and number of elements, and each load
         combination (RSN) with its make-up: the multiplier of each load case. Neither LIRA's
         API nor DCL gives a load case's coefficient in an RSN; it is fitted from the
         displacements of up to 300 nodes (an RSN's displacements are the sum of the cases'
@@ -41,7 +42,8 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
         their multipliers are not determined one by one, the make-up is left empty with a
         warning. output_dir (absolute folder): also <model>_rpz_facts.docx with the tables
         and <model>_rpz_facts.json with the same facts and the model's SHA-256 for LIRA+
-        (draft exchange format, version 1).
+        (draft exchange format, version 1; "unsaved_changes": true and a warning when the
+        model has changes not saved to its file).
         """
         out = _folder(output_dir)
         ref = model or await session.resolve(None)
@@ -49,10 +51,17 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
             rpz.model_facts, session.adapter, ref, timeout=session.settings.call_timeout_s * 5
         )
         if out is not None:
+            unsaved = await session.run(session.adapter.has_unsaved_changes, facts["model"])
             facts["files"] = [
                 await asyncio.to_thread(rpz.write_facts, facts, out),
-                await asyncio.to_thread(rpz.write_facts_json, facts, out),
+                await asyncio.to_thread(rpz.write_facts_json, facts, out, unsaved),
             ]
+            if unsaved:
+                facts["warning"] = (
+                    "The model may have unsaved changes in LIRA: the SHA-256 in the JSON is of the "
+                    "file on disk, not of the model the facts were read from; save it and "
+                    "call again"
+                )
         return facts
 
     @mcp.tool()
