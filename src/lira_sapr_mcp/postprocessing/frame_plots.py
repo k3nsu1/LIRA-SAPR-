@@ -38,7 +38,7 @@ def project(p: np.ndarray, view: str) -> np.ndarray:
     raise ValueError(f"view: one of {', '.join(VIEWS)}")
 
 
-def _figure(title: str):
+def figure(title: str):
     fig, ax = plt.subplots(figsize=(11.7, 8.3))  # A4 landscape, inches
     ax.set_aspect("equal")
     ax.axis("off")
@@ -46,7 +46,7 @@ def _figure(title: str):
     return fig, ax
 
 
-def _save(fig, path: Path) -> Path:
+def save(fig, path: Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=200, bbox_inches="tight", facecolor="white")
     plt.close(fig)
@@ -73,7 +73,7 @@ def scheme(
     title: str,
 ) -> Path:
     """Bars coloured by their stiffness number, supports as triangles."""
-    fig, ax = _figure(title)
+    fig, ax = figure(title)
     keys, segs = _segments(nodes, bars, view)
     numbers = sorted({stiffness_of.get(el, 0) for el in keys})
     cmap = plt.get_cmap("tab20", max(len(numbers), 1))
@@ -92,7 +92,7 @@ def scheme(
         )
     ax.legend(loc="upper left", bbox_to_anchor=(1.0, 1.0), fontsize=8, frameon=False)
     ax.autoscale()
-    return _save(fig, path)
+    return save(fig, path)
 
 
 def deformed(
@@ -114,7 +114,7 @@ def deformed(
     top = float(np.linalg.norm(d[largest]))
     if scale is None:
         scale = 0.05 * size / top if top > 0 else 1.0
-    fig, ax = _figure(f"{title} (масштаб перемещений ×{scale:.0f})")
+    fig, ax = figure(f"{title} (масштаб перемещений ×{scale:.0f})")
     _, plain = _segments(nodes, bars, view)
     ax.add_collection(LineCollection(plain, colors=GREY, linewidths=0.8))
     _, moved = _segments(nodes, bars, view, {n: scale * d[n] for n in used})
@@ -128,7 +128,7 @@ def deformed(
         textcoords="offset points",
     )
     ax.autoscale()
-    return _save(fig, path), scale
+    return save(fig, path), scale
 
 
 LABEL_STEP = 12  # points between labels of spans drawn at nearly the same place
@@ -166,7 +166,7 @@ def spans_map(
 ) -> Path:
     """Bars in grey; each span (its nodes along the bar, L / f) drawn in the colour of its L / f
     band; the ``marked`` worst signed with their L / f."""
-    fig, ax = _figure(title)
+    fig, ax = figure(title)
     _, plain = _segments(nodes, bars, view)
     ax.add_collection(LineCollection(plain, colors=GREY, linewidths=0.8))
     for row, ratio in spans:
@@ -192,4 +192,4 @@ def spans_map(
         title="Цвет — для наглядности,\nпредел задаёт проект",
     )
     ax.autoscale()
-    return _save(fig, path)
+    return save(fig, path)

@@ -7,9 +7,12 @@ from typing import Any
 from mcp.server import MCPServer
 
 from lira_sapr_mcp.errors import LiraInputError
+from lira_sapr_mcp.services import diagrams as sd
 from lira_sapr_mcp.services import members as sm
 from lira_sapr_mcp.services.session import LiraSession
 from lira_sapr_mcp.tools.common import lira_errors, numbers_in
+
+VIEWS = ("iso", "xz", "yz", "xy")
 
 
 def register(mcp: MCPServer, session: LiraSession) -> None:
@@ -104,4 +107,91 @@ def register(mcp: MCPServer, session: LiraSession) -> None:
                 result["files"] += await asyncio.to_thread(
                     sm.pictures, frame, out_dir, stem, source, view
                 )
+        return result
+
+    @mcp.tool()
+    @lira_errors
+    async def lira_force_diagrams(
+        output_dir: str,
+        model: str | None = None,
+        load_case: int | None = None,
+        combination: int | None = None,
+        limit_state: str = "ultimate",
+        elements: list[int] | str | None = None,
+        components: list[str] | None = None,
+        view: str = "iso",
+    ) -> dict[str, Any]:
+        """Diagrams of forces in the bars of a frame (FE 1-10) for the RPZ appendices: one
+        PNG per component, A4 landscape, 200 dpi, <model>_<component>_<view>.png in
+        output_dir (absolute folder; existing files are replaced). The values are LIRA's
+        forces in the design sections of each bar, converted to kN and kN*m, with LIRA's
+        sign; nothing is recalculated. The design sections lie evenly along a bar, the first
+        at its first node; between them the diagram is a straight line, so a bar with only
+        its two end sections shows no span value (notes say so: set more sections in LIRA).
+        Ordinates are drawn across each bar in the picture: positive red, up (left on a bar
+        vertical in the picture), negative blue on the other side; one scale per picture;
+        the largest and the smallest value are signed with their element.
+
+        Give exactly one of load_case (static) or combination (DCL number from
+        lira_load_combinations) with limit_state: "ultimate" (default), "ultimate_long",
+        "serviceability" or "serviceability_long". elements: the bars (numbers, ranges,
+        "selected", "visible"; default all bars). components: of N, Qy, Qz, Mx, My, Mz
+        (default N, Qz, My, Mz). view: "iso" (default), "xz", "yz" or "xy"; bars seen end on
+        in the view have no diagram (notes list them). Answer: per component the largest
+        and the smallest value with element and section (from 1), the files and notes.
+        """
+        if (load_case is None) == (combination is None):
+            raise LiraInputError("Give exactly one of load_case or combination")
+        if view not in VIEWS:
+            raise LiraInputError('view: one of "iso", "xz", "yz", "xy"')
+        if limit_state not in sd.LIMIT_STATES:
+            raise LiraInputError(f"limit_state: one of {', '.join(sd.LIMIT_STATES)}")
+        chosen = list(components or sd.DEFAULT)
+        bad = [c for c in chosen if c not in sd.UNITS]
+        if bad or not chosen:
+            raise LiraInputError(f"components: of {', '.join(sd.UNITS)} (not {bad})")
+        out_dir = Path(output_dir)
+        if not out_dir.is_absolute():
+            raise LiraInputError("output_dir: an absolute folder path")
+        ref = model or await session.resolve(None)
+        within = None if elements is None else await numbers_in(session, ref, elements, "elements")
+        if within is not None and not within:
+            raise LiraInputError("elements: the list is empty; leave it out for all bars")
+        forces = await session.run(
+            sd.read_forces,
+            session.adapter,
+            ref,
+            within,
+            load_case,
+            combination,
+            limit_state,
+            list(dict.fromkeys(chosen)),
+            timeout=session.settings.call_timeout_s * 5,
+        )
+        source = (
+            f"загружение {load_case}"
+            if combination is None
+            else f"РСН {combination} ({sd.LIMIT_NAMES[limit_state]})"
+        )
+        files, view_notes = await asyncio.to_thread(
+            sd.pictures, forces, out_dir, Path(forces.path).stem, source, view
+        )
+        notes = [*forces.notes, *view_notes]
+        two = sd.two_section_note(forces)
+        if two:
+            notes.append(two)
+        result: dict[str, Any] = {
+            "model": forces.path,
+            "source": {"load_case": load_case}
+            if combination is None
+            else {"combination": combination, "limit_state": limit_state},
+            "bars": len(forces.bars),
+            "extremes": sd.summary(forces),
+            "files": files,
+        }
+        if notes:
+            result["notes"] = notes
+        warning = await session.run(session.adapter.results_warning, forces.path)
+        if warning:
+            result["warning"] = warning
         return result
